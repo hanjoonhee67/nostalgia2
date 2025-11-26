@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노스탤지어 : 집을 찾아서</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
+
+<style>
+/* 기본 */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  width:100vw;height:100vh;background:black;
+  overflow:hidden;font-family:"Orbit";cursor:none;
+}
+
+/* ===========================================
+      INTRO (비디오 전체화면)
+=========================================== */
+#video-background{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  object-fit:cover;z-index:1;transition:opacity 1.5s;
+}
+
+/* 커서 따라오는 집 이미지 */
+#home-container{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:1000;
+}
+.home{
+  position:absolute;width:100px;pointer-events:none;
+  mix-blend-mode:screen;opacity:0.8;
+  transition:transform 0.1s ease-out, opacity 0.5s ease-out;
+  will-change:transform;z-index:1000;
+}
+
+/* 자막 */
+#sub-overlay{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,20vh);
+  width:100%;display:flex;justify-content:center;
+  pointer-events:none;z-index:20;
+}
+
+#message{
+  background:rgba(0, 0, 255, 0.55);
+  border:1px solid rgba(255,255,255,0.4);
+  border-radius:8px;padding:12px 22px;
+  color:#fff;opacity:0;
+  text-align:center;font-size:1.2rem;
+  backdrop-filter:blur(4px);
+  transition:opacity .4s;
+}
+#message.show{opacity:1;}
+
+#instruction{
+  position:fixed;bottom:40px;left:50%;
+  transform:translateX(-50%);
+  color:white;font-size:.9rem;
+  z-index:30;opacity:1;transition:.5s;
+}
+
+/* 검정 → 타이틀 */
+#black-fade{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  background:black;opacity:0;
+  z-index:100;transition:opacity 1.5s;
+  pointer-events:none;
+}
+#final-title{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(1.2);
+  width:700px;max-width:85%;
+  opacity:0;transition:1.7s;
+  z-index:110;
+}
+#final-title.show{
+  opacity:1;transform:translate(-50%,-50%) scale(1);
+}
+
+#help-button{
+  position:fixed;top:25px;right:25px;
+  width:38px;height:38px;display:flex;
+  justify-content:center;align-items:center;
+  border:1.5px solid rgba(255,255,255,0.7);
+  border-radius:8px;background:rgba(0,0,0,0.45);
+  color:white;font-size:1.2rem;
+  backdrop-filter:blur(4px);
+  cursor:pointer;opacity:0;
+  transition:.8s;z-index:200;
+}
+
+/* ===========================================
+              SCENE 2 (inhouse)
+=========================================== */
+#inhouse-scene{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  opacity:0;visibility:hidden;z-index:500;
+  transition:opacity 1.5s ease-in-out, visibility 1.5s;
+}
+#inhouse-scene.show{
+  opacity:1;visibility:visible;
+}
+#inhouse-image{
+  width:100%;height:100%;object-fit:cover;
+}
+
+/* 핫스팟 공통 */
+.hotspot{
+  position:absolute;cursor:pointer;
+  background:rgba(0, 4, 255, 0);
+  pointer-events:auto;z-index:600;
+}
+
+/* 핫스팟 위치 */
+#hot-dresser{top:34%;left:29%;width:17%;height:34%;}
+#hot-desk{top:20%;left:52%;width:10%;height:18%;}
+#hot-shelf{top:7%;left:66%;width:20%;height:63%;}
+#hot-couch{top:55%;left:12%;width:55%;height:28%;}
+
+/* 문 핫스팟 */
+#hot-door{top:25%;left:85%;width:10%;height:50%;}
+
+/* 문 표시 (아이템 다 찾으면 나타남) */
+#door-indicator{
+  position:absolute;
+  top:20%;left:87%;
+  width:60px;height:60px;
+  background:rgba(100,150,255,0.9);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;
+  box-shadow:0 0 20px rgba(0,100,255,0.8), 0 0 40px rgba(0,150,255,0.5);
+  opacity:0;visibility:hidden;
+  transition:opacity 0.8s ease, transform 0.8s ease;
+  transform:scale(0.5);
+  z-index:650;
+  animation:pulse 1.5s infinite;
+  pointer-events:none;
+}
+#door-indicator.show{
+  opacity:1;visibility:visible;
+  transform:scale(1);
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 20px rgba(0,100,255,0.8), 0 0 40px rgba(0,150,255,0.5);}
+  50%{box-shadow:0 0 30px rgba(0,150,255,1), 0 0 60px rgba(0,200,255,0.8);}
+}
+
+/* 팝업 */
+#popup{
+  position:fixed;bottom:100px;left:50%;
+  transform:translateX(-50%);
+  background:rgba(0, 0, 255, 0.6);
+  color:white;padding:18px 26px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.4);
+  display:none;z-index:900;
+  max-width:80%;text-align:center;
+  backdrop-filter:blur(4px);
+}
+
+/* 방 안내 문구 */
+#room-guide{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.7);
+  color:white;padding:24px 36px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.4);
+  font-size:1.3rem;
+  text-align:center;
+  z-index:800;
+  opacity:0;visibility:hidden;
+  transition:opacity 1s ease;
+  backdrop-filter:blur(4px);
+}
+#room-guide.show{
+  opacity:1;visibility:visible;
+}
+#popup-image{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:40%;max-width:500px;
+  border-radius:10px;display:none;
+  z-index:850;
+}
+
+/* ===========================================
+        좌측 체크리스트 UI
+=========================================== */
+#checklist{
+  position:fixed;
+  top:50%; left:3%;
+  transform:translateY(-50%);
+  width:160px;
+  padding:20px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.25);
+  border:3px solid rgb(0, 0, 255);
+  backdrop-filter:blur(6px);
+  z-index:700;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  visibility:hidden;
+  opacity:0;
+  transition:0.8s;
+}
+
+#checklist.show{
+  visibility:visible;
+  opacity:1;
+}
+
+#checklist .item{
+  width:100%;
+  height:90px;
+  border-radius:16px;
+  overflow:hidden;
+  border:2px solid rgba(0, 30, 255, 0.372);
+  opacity:0.4;
+  transition:0.3s;
+}
+
+#checklist .item img{
+  width:100%;height:100%;object-fit:cover;
+}
+
+#checklist .item.checked{
+  opacity:1;
+  border-color:#4cff65;
+  box-shadow:0 0 10px rgba(0,255,80,0.8);
+}
+</style>
+</head>
+
+<body>
+
+<!-- INTRO -->
+<video id="video-background" autoplay muted loop>
+  <source src="intro1.mp4" type="video/mp4">
+</video>
+
+<div id="sub-overlay"><div id="message"></div></div>
+<div id="instruction">클릭해서 넘어가세요</div>
+<div id="home-container"></div>
+
+<div id="black-fade"></div>
+<img id="final-title" src="title.png">
+<div id="help-button">?</div>
+
+<!-- SCENE 2 -->
+<div id="inhouse-scene">
+  <img id="inhouse-image" src="inhouse.png">
+
+  <div class="hotspot" id="hot-dresser"></div>
+  <div class="hotspot" id="hot-desk"></div>
+  <div class="hotspot" id="hot-shelf"></div>
+  <div class="hotspot" id="hot-couch"></div>
+  <div class="hotspot" id="hot-door"></div>
+  
+  <!-- 문 표시 아이콘 -->
+  <div id="door-indicator">🚪</div>
+</div>
+
+<!-- 좌측 체크리스트 -->
+<div id="checklist">
+  <div class="item" id="check-family"><img src="family.png"></div>
+  <div class="item" id="check-cloth"><img src="cloth.png"></div>
+  <div class="item" id="check-wallet"><img src="wallet.png"></div>
+  <div class="item" id="check-couch"><img src="no.png"></div>
+</div>
+
+<!-- 방 안내 문구 -->
+<div id="room-guide">방의 여기저기를 클릭해서<br>물건을 찾아보세요.</div>
+
+<!-- 팝업 -->
+<img id="popup-image">
+<div id="popup"></div>
+
+<script>
+/* INTRO 로직 동일 */
+const messages=[
+ "너무 외로워...",
+ "나만 겉도는 것 같아...",
+ "모든 게 다 낯설어...",
+ "원래 있던 곳으로 돌아가고 싶어!"
+];
+
+let idx=0, busy=false;
+
+const msg=document.getElementById("message");
+const video=document.getElementById("video-background");
+const inst=document.getElementById("instruction");
+const black=document.getElementById("black-fade");
+const title=document.getElementById("final-title");
+const help=document.getElementById("help-button");
+
+function changeVideo(src){video.src=src;video.load();video.play();}
+
+function typeText(el,text,cb){
+  let i=0; el.textContent="";
+  (function t(){
+    if(i<text.length){ el.textContent+=text.charAt(i++); setTimeout(t,80);}
+    else cb&&cb();
+  })();
+}
+
+function showMessage(n){
+  busy=true;
+  msg.style.opacity=0;
+
+  if(n===0) changeVideo("intro1.mp4");
+  else if(n===1) changeVideo("intro2.mp4");
+  else changeVideo("intro3.mp4");
+
+  setTimeout(()=>{
+    msg.style.opacity=1;
+    typeText(msg,messages[n],()=>busy=false);
+  },400);
+}
+
+function finalScene(){
+  inst.style.opacity=0;
+  msg.style.opacity=0;
+  video.style.opacity=0;
+  black.style.opacity=1;
+  setTimeout(()=>title.classList.add("show"),1300);
+  setTimeout(()=>help.style.opacity=1,2600);
+}
+
+document.body.addEventListener("click",(e)=>{
+  if(busy) return;
+
+  if(idx===messages.length){
+    finalScene(); idx++; return;
+  }
+  if(idx===messages.length+1){
+    showInhouseScene(); idx++; return;
+  }
+  showMessage(idx++);
+});
+
+window.onload=()=>setTimeout(()=>{ showMessage(0); idx=1; },600);
+
+/* 집 아이콘 따라오기 */
+const homeContainer=document.getElementById("home-container");
+const homeImgs=['home2.png','home.png'];
+let lastCreateTime=0;
+
+function createHomeImage(x,y){
+  const img=document.createElement('img');
+  img.src=homeImgs[Math.floor(Math.random()*homeImgs.length)];
+  img.className='home';
+  img.style.left=x+'px';
+  img.style.top=y+'px';
+
+  if(Math.random()>0.5){
+    img.style.width='80px';
+    img.style.opacity='0.6';
+    img.style.filter='blur(1.5px)';
+  }
+
+  homeContainer.appendChild(img);
+
+  setTimeout(()=>{
+    img.style.opacity=0;
+    setTimeout(()=>img.remove(),500);
+  },800);
+}
+
+document.addEventListener("mousemove",(e)=>{
+  const now=Date.now();
+  if(now-lastCreateTime>50){
+    createHomeImage(e.clientX,e.clientY);
+    lastCreateTime=now;
+  }
+});
+
+/* SCENE 2 표시 */
+function showInhouseScene(){
+  title.style.opacity=0;
+  help.style.opacity=0;
+  setTimeout(()=>{
+    document.getElementById("inhouse-scene").classList.add("show");
+    
+    /* 안내 문구 표시 */
+    const guide=document.getElementById("room-guide");
+    guide.classList.add("show");
+    
+    /* 3초 후 안내 문구 사라지고 체크리스트 표시 */
+    setTimeout(()=>{
+      guide.classList.remove("show");
+      setTimeout(()=>{
+        document.getElementById("checklist").classList.add("show");
+      },500);
+    },3000);
+  },800);
+}
+
+/* 아이템 상태 */
+let gotCloth=false;
+let gotFamily=false;
+let gotWallet=false;
+let gotCouch=false;
+
+/* 팝업 */
+const popup=document.getElementById("popup");
+const popupImg=document.getElementById("popup-image");
+
+function showPopup(text,img){
+  popup.style.display="block";
+  popup.innerHTML=text;
+  if(img){
+    popupImg.src=img;
+    popupImg.style.display="block";
+  } else popupImg.style.display="none";
+}
+
+function hidePopup(){
+  popup.style.display="none";
+  popupImg.style.display="none";
+}
+
+/* 체크리스트 업데이트 */
+function updateChecklist(){
+  if(gotFamily) document.getElementById("check-family").classList.add("checked");
+  if(gotCloth) document.getElementById("check-cloth").classList.add("checked");
+  if(gotWallet) document.getElementById("check-wallet").classList.add("checked");
+  if(gotCouch) document.getElementById("check-couch").classList.add("checked");
+  
+  /* 모든 아이템을 찾으면 문에 표시 */
+  if(gotFamily && gotCloth && gotWallet && gotCouch){
+    document.getElementById("door-indicator").classList.add("show");
+  }
+}
+
+/* 아이템 클릭 */
+document.getElementById("hot-dresser").onclick=(e)=>{
+  e.stopPropagation();
+  gotCloth=true;
+  updateChecklist();
+  showPopup("소꿉친구가 선물해준 옷이야.","cloth.png");
+};
+
+document.getElementById("hot-desk").onclick=(e)=>{
+  e.stopPropagation();
+  gotFamily=true;
+  updateChecklist();
+  showPopup("이사오기 전 집 앞에서 찍은 가족사진이야.","family.png");
+};
+
+document.getElementById("hot-shelf").onclick=(e)=>{
+  e.stopPropagation();
+  gotWallet=true;
+  updateChecklist();
+  showPopup("돌아가려면 지갑이 필요해.","wallet.png");
+};
+
+document.getElementById("hot-couch").onclick=(e)=>{
+  e.stopPropagation();
+  gotCouch=true;
+  updateChecklist();
+  showPopup("앉아 있을 시간이 없어.","no.png");
+};
+
+/* 문 클릭 */
+document.getElementById("hot-door").onclick=(e)=>{
+  e.stopPropagation();
+
+  if(!(gotCloth && gotFamily && gotWallet && gotCouch)){
+    showPopup("아직 준비가 덜 된 것 같아.",null);
+    return;
+  }
+
+  showPopup(
+    `
+    <div style="margin-bottom:12px;">출발할까요?</div>
+    <button id="go-btn"
+      style="
+        padding:10px 20px;
+        background:white;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        font-size:1rem;
+      "
+    >예</button>
+    `,
+    null
+  );
+
+  setTimeout(()=>{
+    const goBtn=document.getElementById("go-btn");
+    if(goBtn){
+      goBtn.onclick=()=>{
+        location.href="doors.html";
+      };
+    }
+  },50);
+};
+
+/* 팝업 외부 클릭 → 닫기 */
+document.addEventListener("click",(e)=>{
+  if(e.target.classList.contains("hotspot")) return;
+  if(e.target===popupImg || e.target.closest("#popup")) return;
+  hidePopup();
+});
+</script>
+
+</body>
+</html>
