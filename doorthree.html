@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고향과 유사한 공간</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:url('newlibrary.png') center/cover no-repeat;
+  font-family:"Orbit";
+  cursor:none;
+  position:relative;
+}
+
+/* 챕터 */
+#chapter-label{
+  position:fixed;
+  top:30px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:1.2rem;
+  font-weight:bold;
+  text-shadow:0 2px 10px rgba(0,0,0,0.5);
+  z-index:200;
+}
+
+/* CRT FRAME */
+#web-frame{
+  position:fixed; inset:0;
+  width:100vw; height:100vh;
+  object-fit:cover;
+  z-index:9999;
+  pointer-events:none;
+}
+
+/* 노이즈 */
+#window-noise{
+  position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity:0.15;
+  pointer-events:none;
+  z-index:10000;
+  mix-blend-mode:overlay;
+  animation:noiseFlicker 0.1s infinite;
+}
+@keyframes noiseFlicker{
+  0%,100%{opacity:0.1;}
+  50%{opacity:0.2;}
+}
+
+/* 스캔라인 */
+#scanlines{
+  position:fixed; inset:0;
+  background:repeating-linear-gradient(
+    0deg, transparent 0px, transparent 2px,
+    rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px
+  );
+  pointer-events:none;
+  z-index:10001;
+}
+
+#blue-filter{
+  position:fixed; inset:0;
+  background:rgba(100,150,255,0.25);
+  z-index:1;
+  pointer-events:none;
+  mix-blend-mode:multiply;
+}
+
+/* 장면 */
+#library-scene{
+  position:fixed; inset:0;
+  z-index:0;
+}
+
+/* 객체들 */
+.obj{
+  position:absolute;
+  cursor:pointer;
+  transition:filter .3s;
+}
+.obj:hover{ filter:brightness(1.2); }
+
+#hometown-overlay{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6);
+  opacity:0; pointer-events:none;
+  z-index:999;
+  transition:opacity .4s;
+}
+#hometown-overlay.show{
+  opacity:1; pointer-events:auto;
+}
+#hometown-image{
+  max-width:60%; max-height:70%;
+  border:5px solid white;
+  box-shadow:0 0 40px rgba(0,0,0,0.5);
+}
+
+/* 안내 */
+#hint{
+  position:fixed;
+  bottom:30px; left:50%;
+  transform:translateX(-50%);
+  color:#333;
+  font-size:0.95rem;
+  z-index:10;
+  background:rgba(255,255,255,0.75);
+  padding:10px 20px;
+  border-radius:20px;
+}
+
+/* 커서 */
+#cursor-dot{
+  position:fixed;
+  width:14px;height:14px;
+  border:2px solid rgba(0,0,0,0.7);
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:9999;
+}
+</style>
+</head>
+
+<body>
+
+<img id="web-frame" src="web frame.png">
+<div id="window-noise"></div>
+<div id="scanlines"></div>
+
+<div id="chapter-label">CHAPTER 3 — 유사점 찾기</div>
+
+<div id="library-scene">
+  <!-- 예시 객체 위치 (원하는 대로 수정 가능) -->
+  <img class="obj" style="left:15%; top:25%; width:150px;" 
+       src="shelf.png" data-h hometown="h_shelf.png">
+
+  <img class="obj" style="right:20%; top:32%; width:180px;" 
+       src="window.png" data-h hometown="h_window.png">
+
+  <img class="obj" style="left:40%; bottom:15%; width:160px;" 
+       src="desk.png" data-h hometown="h_desk.png">
+
+  <img class="obj" style="right:35%; bottom:18%; width:170px;" 
+       src="lamp.png" data-h hometown="h_lamp.png">
+</div>
+
+<div id="blue-filter"></div>
+
+<!-- 고향 오버레이 -->
+<div id="hometown-overlay">
+  <img id="hometown-image">
+</div>
+
+<div id="hint">비슷하다고 느껴지는 것을 클릭해보세요</div>
+<div id="cursor-dot"></div>
+
+<script>
+/* 커서 */
+const cursor=document.getElementById("cursor-dot");
+document.addEventListener("mousemove", e => {
+  cursor.style.left=e.clientX+"px";
+  cursor.style.top=e.clientY+"px";
+});
+
+/* 객체 Hover */
+const objs = document.querySelectorAll(".obj");
+const overlay = document.getElementById("hometown-overlay");
+const overlayImg = document.getElementById("hometown-image");
+
+let clickCount = 0;
+const REQUIRED = objs.length;  // 네 개 전부 클릭해야 인증됨
+
+objs.forEach(el => {
+  el.addEventListener("mouseenter", () => {
+    overlayImg.src = el.dataset.hometown;
+    overlay.classList.add("show");
+  });
+  el.addEventListener("mouseleave", () => {
+    overlay.classList.remove("show");
+  });
+
+  el.addEventListener("click", () => {
+    if(!el.classList.contains("done")){
+      el.classList.add("done");
+      clickCount++;
+
+      if(clickCount === REQUIRED){
+        overlayImg.src = "h_complete.png";
+        overlay.classList.add("show");
+        hint.innerHTML = "인증 완료 — 고향의 기억과 연결되었습니다.<br>클릭하여 다음 장으로 이동";
+        
+        document.body.addEventListener("click", () => {
+          location.href = "doors.html";
+        }, {once:true});
+      }
+    }
+  });
+});
+</script>
+
+</body>
+</html>
