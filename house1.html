@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주민들과 대화</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:#e8e8e8;
+  font-family:"Orbit";
+  cursor:none;
+  position:relative;
+}
+
+/* 주민 실루엣 컨테이너 */
+#residents-container{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:80px;
+  z-index:1;
+}
+
+/* 주민 실루엣 */
+.resident{
+  width:120px;
+  height:200px;
+  background:rgba(100,100,120,0.6);
+  border-radius:10px;
+  position:relative;
+  cursor:pointer;
+  transition:transform 0.3s, opacity 0.3s;
+  filter:blur(2px);
+}
+
+.resident:hover{
+  transform:scale(1.1);
+  filter:blur(0px);
+  opacity:0.8;
+}
+
+/* 말풍선 */
+.speech-bubble{
+  position:absolute;
+  bottom:220px;
+  left:50%;
+  transform:translateX(-50%);
+  background:white;
+  padding:15px 20px;
+  border-radius:15px;
+  max-width:250px;
+  font-size:0.9rem;
+  color:#333;
+  opacity:0;
+  pointer-events:none;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  transition:opacity 0.3s;
+}
+
+.speech-bubble::after{
+  content:"";
+  position:absolute;
+  bottom:-10px;
+  left:50%;
+  transform:translateX(-50%);
+  border:10px solid transparent;
+  border-top-color:white;
+}
+
+.speech-bubble.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* 대화 텍스트들 */
+.dialogue{
+  margin:5px 0;
+  line-height:1.5;
+}
+
+/* 안내문 */
+#hint{
+  position:fixed;
+  bottom:30px;left:50%;
+  transform:translateX(-50%);
+  color:#666;
+  font-size:0.85rem;
+  z-index:10;
+  opacity:0.7;
+}
+
+/* 커서 */
+#cursor-dot{
+  position:fixed;
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid rgba(0,0,0,0.6);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:9999;
+}
+</style>
+</head>
+<body>
+
+<div id="residents-container">
+  <!-- 주민 1 -->
+  <div class="resident" data-dialogue="어디서 오셨어요?">
+    <div class="speech-bubble">
+      <div class="dialogue">어디서 오셨어요?</div>
+    </div>
+  </div>
+  
+  <!-- 주민 2 -->
+  <div class="resident" data-dialogue="금방 적응하실 거예요.">
+    <div class="speech-bubble">
+      <div class="dialogue">금방 적응하실 거예요.</div>
+    </div>
+  </div>
+  
+  <!-- 주민 3 -->
+  <div class="resident" data-dialogue="여긴 조용해서 좋아요. 그렇죠?">
+    <div class="speech-bubble">
+      <div class="dialogue">여긴 조용해서 좋아요.</div>
+      <div class="dialogue">그렇죠?</div>
+    </div>
+  </div>
+</div>
+
+<div id="hint">주민들을 클릭해보세요</div>
+<div id="cursor-dot"></div>
+
+<script>
+const residents = document.querySelectorAll(".resident");
+const cursor = document.getElementById("cursor-dot");
+
+// 커서
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+});
+
+// 주민 클릭 이벤트
+residents.forEach(resident => {
+  const bubble = resident.querySelector(".speech-bubble");
+  
+  resident.addEventListener("click", () => {
+    // 말풍선 표시
+    bubble.classList.add("show");
+    
+    // 2초 후 사라지고 조용해짐
+    setTimeout(() => {
+      bubble.classList.remove("show");
+    }, 2000);
+  });
+  
+  // 호버 시 말풍선 미리보기
+  resident.addEventListener("mouseenter", () => {
+    bubble.classList.add("show");
+  });
+  
+  resident.addEventListener("mouseleave", () => {
+    bubble.classList.remove("show");
+  });
+});
+
+// 일정 시간 후 자동으로 문 3으로 이동 (선택사항)
+setTimeout(() => {
+  const hint = document.getElementById("hint");
+  hint.textContent = "계속 진행하려면 아무 곳이나 클릭하세요";
+  hint.style.cursor = "pointer";
+  
+  document.body.addEventListener("click", () => {
+    location.href = "house2.html";
+  }, {once:true});
+}, 10000);
+</script>
+
+</body>
+</html>
+

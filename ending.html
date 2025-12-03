@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>끝</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family:"Orbit";
+  cursor:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#ending-message{
+  text-align:center;
+  color:white;
+  z-index:10;
+}
+
+#ending-message h1{
+  font-size:3rem;
+  margin-bottom:30px;
+  text-shadow:0 5px 20px rgba(0,0,0,0.5);
+  opacity:0;
+  animation:fadeIn 1s ease 0.5s forwards;
+}
+
+#ending-message p{
+  font-size:1.5rem;
+  line-height:2;
+  opacity:0;
+  animation:fadeIn 1s ease 1.5s forwards;
+  text-shadow:0 3px 15px rgba(0,0,0,0.5);
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* 커서 */
+#cursor-dot{
+  position:fixed;
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.9);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:9999;
+}
+</style>
+</head>
+<body>
+
+<div id="ending-message">
+  <h1>집이 되는 과정</h1>
+  <p>물리적 장소가 아니라</p>
+  <p>익숙함 + 관계 + 나의 발걸음</p>
+  <p>그것이 바로 집입니다.</p>
+</div>
+
+<div id="cursor-dot"></div>
+
+<script>
+const cursor = document.getElementById("cursor-dot");
+
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+});
+</script>
+
+</body>
+</html>
+

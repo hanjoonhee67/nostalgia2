@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고향과 유사한 공간</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:linear-gradient(180deg, #87ceeb 0%, #98d8c8 100%);
+  font-family:"Orbit";
+  cursor:none;
+  position:relative;
+}
+
+/* 블루 필터 */
+#blue-filter{
+  position:fixed;
+  inset:0;
+  background:rgba(100,150,255,0.3);
+  z-index:1;
+  pointer-events:none;
+  mix-blend-mode:multiply;
+}
+
+/* 공원 장면 컨테이너 */
+#park-scene{
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+/* 나무 */
+.tree{
+  position:absolute;
+  width:150px;
+  height:200px;
+  background:rgba(34,139,34,0.7);
+  border-radius:50% 50% 30% 30%;
+  cursor:pointer;
+  transition:filter 0.3s;
+}
+
+.tree:hover{
+  filter:brightness(1.2);
+}
+
+/* 햇빛 무늬 */
+.sunlight{
+  position:absolute;
+  width:200px;
+  height:200px;
+  background:radial-gradient(circle, rgba(255,255,200,0.4) 0%, transparent 70%);
+  border-radius:50%;
+  cursor:pointer;
+  animation:sway 3s ease-in-out infinite;
+}
+
+@keyframes sway{
+  0%,100%{transform:translate(0,0);}
+  50%{transform:translate(20px,10px);}
+}
+
+/* 벤치 */
+.bench{
+  position:absolute;
+  width:180px;
+  height:80px;
+  background:rgba(139,69,19,0.8);
+  bottom:20%;
+  left:50%;
+  transform:translateX(-50%);
+  cursor:pointer;
+  border-radius:5px;
+}
+
+/* 고향 사진 오버레이 */
+#hometown-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#hometown-overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+#hometown-image{
+  max-width:60%;
+  max-height:70%;
+  border:5px solid white;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  opacity:0.8;
+}
+
+/* 안내문 */
+#hint{
+  position:fixed;
+  bottom:30px;left:50%;
+  transform:translateX(-50%);
+  color:rgba(0,0,0,0.7);
+  font-size:0.9rem;
+  z-index:10;
+  background:rgba(255,255,255,0.7);
+  padding:10px 20px;
+  border-radius:20px;
+}
+
+/* 커서 */
+#cursor-dot{
+  position:fixed;
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid rgba(0,0,0,0.6);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:9999;
+}
+</style>
+</head>
+<body>
+
+<div id="park-scene">
+  <div class="tree" style="left:15%;top:30%;" data-hometown="hometown1.png"></div>
+  <div class="tree" style="right:20%;top:25%;" data-hometown="hometown2.png"></div>
+  <div class="sunlight" style="left:40%;top:10%;" data-hometown="hometown3.png"></div>
+  <div class="bench" data-hometown="hometown4.png"></div>
+</div>
+
+<div id="blue-filter"></div>
+
+<div id="hometown-overlay">
+  <img id="hometown-image" src="" alt="고향">
+</div>
+
+<div id="hint">마우스를 올려보세요 - 고향의 기억이 떠오릅니다</div>
+<div id="cursor-dot"></div>
+
+<script>
+const interactiveElements = document.querySelectorAll(".tree, .sunlight, .bench");
+const overlay = document.getElementById("hometown-overlay");
+const overlayImg = document.getElementById("hometown-image");
+const cursor = document.getElementById("cursor-dot");
+
+// 커서
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+});
+
+// 호버 시 고향 사진 표시
+interactiveElements.forEach(el => {
+  el.addEventListener("mouseenter", () => {
+    const imgSrc = el.dataset.hometown;
+    if(imgSrc){
+      overlayImg.src = imgSrc;
+      overlay.classList.add("show");
+    }
+  });
+  
+  el.addEventListener("mouseleave", () => {
+    overlay.classList.remove("show");
+  });
+});
+
+// 일정 시간 후 자동으로 문 4로 이동
+setTimeout(() => {
+  const hint = document.getElementById("hint");
+  hint.textContent = "계속 진행하려면 아무 곳이나 클릭하세요";
+  hint.style.cursor = "pointer";
+  
+  document.body.addEventListener("click", () => {
+    location.href = "house3.html";
+  }, {once:true});
+}, 15000);
+</script>
+
+</body>
+</html>
+
