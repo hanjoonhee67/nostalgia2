@@ -192,17 +192,16 @@ errorTexts.forEach((text, i) => {
 
 // 문 데이터
 const doorPresets = [
-  { img:"door1.png", label:"첫 번째 문", link:"house1.html" },
-  { img:"door2.png", label:"두 번째 문", link:"house2.html" },
-  { img:"door3.png", label:"세 번째 문", link:"house3.html" },
-  { img:"door4.png", label:"네 번째 문", link:"house4.html" },
-  { img:"door5.png", label:"마지막 문", link:"ending.html" }
+  { img:"door1.png", label:"첫 번째 문", link:"doorone.html" },
+  { img:"door2.png", label:"두 번째 문", link:"doortwo.html" },
+  { img:"door3.png", label:"세 번째 문", link:"doorthree.html" },
+  { img:"door4.png", label:"네 번째 문", link:"doorfour.html" },
+  { img:"door5.png", label:"마지막 문", link:"doorfive.html" }
 ];
 
 const doors = [];
 const radius = 500; // 원형 배치 반지름
 const totalDoors = doorPresets.length;
-let firstClick = true; // 첫 클릭 여부
 
 doorPresets.forEach((data, i) => {
   const door = document.createElement("div");
@@ -217,12 +216,7 @@ doorPresets.forEach((data, i) => {
   door.appendChild(label);
   
   door.addEventListener("click", () => {
-    if(firstClick){
-      firstClick = false;
-      location.href = "doorone.html";
-    } else {
-      if(data.link) location.href = data.link;
-    }
+    if(data.link) location.href = data.link;
   });
   
   container.appendChild(door);

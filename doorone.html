@@ -3,19 +3,552 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>문 밖</title>
+<title>도착 / 아파트 단지</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{
-  width:100%;height:100%;overflow:hidden;
+body{
+  width:100vw;height:100vh;
+  overflow:hidden;
+  background:url('outside.png') center/cover no-repeat;
+  font-family:"Orbit", monospace;
+  cursor:none;
+  position:relative;
 }
 
-body{
-  background:url('outside.png') center/cover no-repeat;
+/* 검은 오버레이 - 눈을 뜨는 것처럼 페이드아웃 */
+#black-overlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:1000;
+  pointer-events:none;
+  animation:fadeOutEyes 2s ease-out forwards;
+}
+
+@keyframes fadeOutEyes{
+  0%{
+    opacity:1;
+  }
+  100%{
+    opacity:0;
+  }
+}
+
+/* 챕터 표시 */
+#chapter-label{
+  position:fixed;
+  top:30px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:1.2rem;
+  font-weight:bold;
+  font-family:"Orbit", sans-serif;
+  z-index:200;
+  text-shadow:0 2px 10px rgba(0,0,0,0.5);
+  letter-spacing:3px;
+}
+
+/* 프레임 이미지 */
+#web-frame{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  object-fit:cover;
+  z-index:9999;
+  pointer-events:none;
+}
+
+/* 윈도우 노이즈 효과 */
+#window-noise{
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity:0.15;
+  pointer-events:none;
+  z-index:10000;
+  mix-blend-mode:overlay;
+  animation:noiseFlicker 0.1s infinite;
+}
+
+@keyframes noiseFlicker{
+  0%,100%{opacity:0.1;}
+  50%{opacity:0.2;}
+}
+
+/* 스캔라인 효과 */
+#scanlines{
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0,0,0,0.1) 2px,
+    rgba(0,0,0,0.1) 4px
+  );
+  pointer-events:none;
+  z-index:10001;
+}
+
+/* 파란 Error 화면 오버레이 */
+#error-overlay{
+  position:fixed;
+  inset:0;
+  background:#0000aa;
+  opacity:0.4;
+  z-index:1;
+  pointer-events:none;
+  transition:opacity 0.1s;
+}
+
+/* 안내판/전광판 - 글자 일부만 보임 */
+#info-board{
+  position:fixed;
+  width:70vw;max-width:700px;
+  background:rgba(0,0,170,0.85);
+  border:4px solid #fff;
+  padding:40px;
+  color:white;
+  font-family:"Courier New", monospace;
+  font-size:16px;
+  line-height:1.8;
+  z-index:2;
+  opacity:0;
+  box-shadow:0 0 30px rgba(0,0,170,0.6);
+  animation:errorAppear 8s infinite;
+  animation-delay:2s;
+}
+
+/* 에러 화면이 여기저기 나타났다가 사라지는 애니메이션 */
+@keyframes errorAppear{
+  0%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+    top:10%;
+    left:10%;
+  }
+  10%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  20%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  30%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+  }
+  40%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+    top:20%;
+    left:70%;
+  }
+  50%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  60%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  70%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+  }
+  80%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+    top:60%;
+    left:20%;
+  }
+  90%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  95%{
+    opacity:0.95;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(0.8);
+  }
+}
+
+/* 글자 일부만 보이게 (깨진 느낌) */
+#info-board::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,0.3) 2px,
+      rgba(0,0,0,0.3) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 1px,
+      rgba(0,0,0,0.2) 1px,
+      rgba(0,0,0,0.2) 2px
+    );
+  pointer-events:none;
+}
+
+/* 텍스트 일부만 보이게 */
+.info-text{
+  opacity:0.6;
+  filter:blur(0.5px);
+  position:relative;
+}
+
+.info-text.visible{
+  opacity:1;
+  filter:blur(0);
+}
+
+/* 파형 효과 (마우스 움직일 때) */
+#wave-effect{
+  position:fixed;
+  bottom:20%;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  height:80px;
+  z-index:3;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+
+.wave-bar{
+  position:absolute;
+  bottom:0;
+  width:8px;
+  background:rgba(255,255,255,0.8);
+  border-radius:4px 4px 0 0;
+  transition:height 0.1s;
+}
+
+/* 스피커 라벨 */
+#speaker-label{
+  position:fixed;
+  bottom:180px;
+  left:50%;
+  transform:translateX(-50%);
+  margin-left:-280px;
+  background:rgba(0,0,100,0.85);
+  color:white;
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:0.9rem;
+  font-weight:bold;
+  text-transform:uppercase;
+  z-index:100;
+  pointer-events:none;
+  font-family:"Orbit", sans-serif;
+}
+
+/* 자막바 */
+#subtitle-box{
+  position:fixed;
+  bottom:60px;
+  left:50%;
+  transform:translateX(-50%);
+  width:600px;
+  max-width:90%;
+  background:rgba(0,0,0,0.6);
+  padding:20px 30px;
+  z-index:100;
+  cursor:pointer;
+  transition:background 0.3s;
+  min-height:80px;
+  display:flex;
+  align-items:center;
+  border-radius:10px;
+  backdrop-filter:blur(5px);
+}
+
+#subtitle-box:hover{
+  background:rgba(0,0,0,0.75);
+}
+
+/* 자막 텍스트 */
+#subtitle-text{
+  color:white;
+  font-size:1.1rem;
+  line-height:1.6;
+  font-family:"Orbit", sans-serif;
+  width:100%;
+  max-width:90%;
+}
+
+/* 타이핑 커서 */
+#typing-cursor{
+  display:inline-block;
+  width:2px;
+  height:1.2em;
+  background:white;
+  margin-left:4px;
+  animation:blinkCursor 1s infinite;
+  vertical-align:middle;
+}
+
+@keyframes blinkCursor{
+  0%,50%{opacity:1;}
+  51%,100%{opacity:0;}
+}
+
+/* 노이즈 */
+#noise{
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity:0.12;
+  pointer-events:none;
+  z-index:5;
+  mix-blend-mode:overlay;
+}
+
+/* 스캔라인 */
+#scanlines{
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0,0,0,0.2) 2px,
+    rgba(0,0,0,0.2) 4px
+  );
+  pointer-events:none;
+  z-index:6;
+}
+
+/* 커서 */
+#cursor-dot{
+  position:fixed;
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.9);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* 커서 따라오는 집 이미지 */
+#home-container{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:1000;
+}
+
+.home{
+  position:absolute;
+  width:100px;
+  pointer-events:none;
+  mix-blend-mode:screen;
+  opacity:0.8;
+  transition:transform 0.1s ease-out, opacity 0.5s ease-out;
+  will-change:transform;
+  z-index:1000;
 }
 </style>
 </head>
 <body>
+
+<img id="web-frame" src="web frame.png" alt="frame">
+<div id="window-noise"></div>
+<div id="scanlines"></div>
+<div id="chapter-label">CHAPTER 1</div>
+<div id="black-overlay"></div>
+<div id="error-overlay"></div>
+<div id="noise"></div>
+<div id="scanlines"></div>
+
+<div id="info-board">
+  <div class="info-text" style="opacity:0.3;">SYSTEM ERROR</div>
+  <div class="info-text visible" style="margin-top:15px;">INFORMATION OVERLOAD</div>
+  <div class="info-text" style="opacity:0.4;margin-top:10px;">UNKNOWN LOCATION DETECTED</div>
+</div>
+
+<div id="wave-effect"></div>
+
+<div id="home-container"></div>
+
+<div id="speaker-label">YOU</div>
+<div id="subtitle-box">
+  <div id="subtitle-text"></div>
+</div>
+
+<div id="cursor-dot"></div>
+
+<script>
+const errorOverlay = document.getElementById("error-overlay");
+const waveEffect = document.getElementById("wave-effect");
+const subtitleText = document.getElementById("subtitle-text");
+const subtitleBox = document.getElementById("subtitle-box");
+const cursor = document.getElementById("cursor-dot");
+const homeContainer = document.getElementById("home-container");
+
+// 파형 생성
+for(let i = 0; i < 50; i++){
+  const bar = document.createElement("div");
+  bar.className = "wave-bar";
+  bar.style.left = (i * 6) + "px";
+  bar.style.height = "5px";
+  waveEffect.appendChild(bar);
+}
+
+const waveBars = document.querySelectorAll(".wave-bar");
+
+// 집 아이콘 따라오기
+const homeImgs = ['home2.png', 'home.png'];
+let lastCreateTime = 0;
+
+function createHomeImage(x, y){
+  const img = document.createElement('img');
+  img.src = homeImgs[Math.floor(Math.random() * homeImgs.length)];
+  img.className = 'home';
+  img.style.left = x + 'px';
+  img.style.top = y + 'px';
+
+  if(Math.random() > 0.5){
+    img.style.width = '80px';
+    img.style.opacity = '0.6';
+    img.style.filter = 'blur(1.5px)';
+  }
+
+  homeContainer.appendChild(img);
+
+  setTimeout(() => {
+    img.style.opacity = 0;
+    setTimeout(() => img.remove(), 500);
+  }, 800);
+}
+
+// 커서
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+  
+  // 집 이미지 생성
+  const now = Date.now();
+  if(now - lastCreateTime > 50){
+    createHomeImage(e.clientX, e.clientY);
+    lastCreateTime = now;
+  }
+  
+  // 마우스 움직일 때 파형 효과
+  waveEffect.style.opacity = "0.8";
+  
+  const mouseX = e.clientX / window.innerWidth;
+  const mouseY = e.clientY / window.innerHeight;
+  
+  waveBars.forEach((bar, i) => {
+    const baseHeight = 10 + Math.sin((i + Date.now() * 0.01) * 0.3) * 15;
+    const mouseEffect = Math.sin((i * 0.2) + mouseX * 10) * 20;
+    bar.style.height = (baseHeight + mouseEffect) + "px";
+  });
+  
+  // Error 오버레이 살짝 흔들림
+  errorOverlay.style.opacity = (0.4 + Math.sin(Date.now() * 0.01) * 0.05).toString();
+});
+
+// 마우스 멈추면 파형 사라짐
+let mouseTimer;
+document.addEventListener("mousemove", () => {
+  clearTimeout(mouseTimer);
+  mouseTimer = setTimeout(() => {
+    waveEffect.style.opacity = "0";
+  }, 1000);
+});
+
+// 메시지 순서
+const messages = [
+  "역시.. 더는 있기 힘들어.",
+  "어떻게 해야 기차역으로 갈 수 있지?",
+  "아무것도 모르겠는데..",
+  "그래도 한번 가보자."
+];
+
+let currentMessageIndex = 0;
+let isTyping = false;
+let typingTimeout = null;
+
+// 타이핑 효과 함수
+function typeText(text, callback){
+  if(isTyping) return;
+  isTyping = true;
+  
+  subtitleText.innerHTML = "";
+  let charIndex = 0;
+  
+  function typeChar(){
+    if(charIndex < text.length){
+      subtitleText.innerHTML = text.substring(0, charIndex + 1) + '<span id="typing-cursor"></span>';
+      charIndex++;
+      typingTimeout = setTimeout(typeChar, 50);
+    } else {
+      subtitleText.innerHTML = text;
+      isTyping = false;
+      if(callback) callback();
+    }
+  }
+  
+  typeChar();
+}
+
+// 첫 메시지 표시
+setTimeout(() => {
+  typeText(messages[0]);
+}, 2100); // 검은 오버레이가 사라진 후
+
+// 클릭하면 다음 메시지로 변경
+subtitleBox.addEventListener("click", () => {
+  if(isTyping){
+    // 타이핑 중이면 즉시 완성
+    clearTimeout(typingTimeout);
+    subtitleText.innerHTML = messages[currentMessageIndex];
+    isTyping = false;
+    return;
+  }
+  
+  currentMessageIndex++;
+  
+  if(currentMessageIndex < messages.length){
+    // 다음 메시지 타이핑
+    typeText(messages[currentMessageIndex]);
+  } else {
+    // 마지막 메시지 후 doors.html로 이동
+    subtitleBox.style.opacity = "0";
+    setTimeout(() => {
+      location.href = "doors.html";
+    }, 500);
+  }
+});
+
+// 텍스트 깜빡임 효과
+const infoTexts = document.querySelectorAll(".info-text");
+setInterval(() => {
+  infoTexts.forEach(text => {
+    if(Math.random() > 0.7){
+      text.style.opacity = (Math.random() * 0.5 + 0.3).toString();
+    }
+  });
+}, 2000);
+</script>
+
 </body>
 </html>
-
