@@ -3,20 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>역 찾기 게임</title>
+<title>역 찾기 게임 - 캡챠 길찾기</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbit:wght@400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
   width:100vw;height:100vh;
   overflow:hidden;
-  background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:url('road.png') center/cover no-repeat;
   font-family:"Orbit";
   cursor:none;
   position:relative;
   display:flex;
   align-items:center;
   justify-content:center;
+}
+
+/* 배경 전환용 레이어 */
+#background-overlay{
+  position:fixed;
+  inset:0;
+  background:url('road2.png') center/cover no-repeat;
+  opacity:0;
+  transition:opacity 1s ease-in-out;
+  z-index:-1;
+  pointer-events:none;
+}
+
+#background-overlay.show{
+  opacity:1;
+}
+
+/* 세 번째 배경 전환용 레이어 */
+#background-overlay-2{
+  position:fixed;
+  inset:0;
+  background:url('road3.png') center/cover no-repeat;
+  opacity:0;
+  transition:opacity 1s ease-in-out;
+  z-index:-1;
+  pointer-events:none;
+}
+
+#background-overlay-2.show{
+  opacity:1;
+}
+
+/* 음악 플레이어 - 윈도우 창 스타일 */
+#music-player{
+  position:fixed;
+  top:120px;
+  right:100px;
+  z-index:200;
+  background:#C0C0C0;
+  border:3px outset #C0C0C0;
+  padding:0;
+  box-shadow:inset 1px 1px 0px #000, inset -1px -1px 0px #fff, 2px 2px 4px rgba(0,0,0,0.3);
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:200px;
+}
+
+#music-player-title{
+  background:#000080;
+  color:#fff;
+  font-size:0.75rem;
+  margin:0;
+  padding:3px 6px;
+  text-align:left;
+  font-weight:normal;
+  border-bottom:2px solid #000;
+}
+
+#music-player-content{
+  padding:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#music-toggle{
+  background:#C0C0C0;
+  border:2px outset #C0C0C0;
+  color:#000;
+  padding:3px 12px;
+  cursor:pointer;
+  font-size:0.7rem;
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:50px;
+}
+
+#music-toggle:active{
+  border:2px inset #C0C0C0;
+}
+
+#volume-control{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:0.7rem;
+  color:#000;
+}
+
+#volume-slider{
+  width:70px;
+  height:4px;
+  background:#C0C0C0;
+  border:1px inset #C0C0C0;
+  outline:none;
+  cursor:pointer;
+}
+
+#volume-slider::-webkit-slider-thumb{
+  appearance:none;
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
+}
+
+#volume-slider::-moz-range-thumb{
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
 }
 
 /* 챕터 표시 */
@@ -77,57 +188,175 @@ body{
   z-index:10001;
 }
 
+/* 검은 오버레이 - 눈을 뜨는 것처럼 페이드아웃 */
+#black-overlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:1000;
+  pointer-events:none;
+  animation:fadeOutEyes 2s ease-out forwards;
+}
+
+@keyframes fadeOutEyes{
+  0%{opacity:1;}
+  100%{opacity:0;}
+}
+
+/* 파란 Error 화면 오버레이 */
+#error-overlay{
+  position:fixed;
+  inset:0;
+  background:#0000aa;
+  opacity:0.4;
+  z-index:1;
+  pointer-events:none;
+  transition:opacity 1s;
+}
+#error-overlay.fade-out{
+  opacity:0;
+}
+
+/* 스피커 라벨 */
+#speaker-label{
+  position:fixed;
+  bottom:210px;
+  left:50%;
+  transform:translateX(-50%);
+  margin-left:-280px;
+  background:rgba(0,0,100,0.85);
+  color:white;
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:0.9rem;
+  font-weight:bold;
+  text-transform:uppercase;
+  z-index:100;
+  pointer-events:none;
+  font-family:"Orbit", sans-serif;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+#speaker-label.show{opacity:1;}
+
+/* 자막바 */
+#subtitle-box{
+  position:fixed;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  width:600px;
+  max-width:90%;
+  background:rgba(0,0,0,0.6);
+  padding:20px 30px;
+  z-index:100;
+  cursor:pointer;
+  transition:background 0.3s, opacity 0.3s;
+  min-height:80px;
+  display:flex;
+  align-items:center;
+  border-radius:10px;
+  backdrop-filter:blur(5px);
+  opacity:0;
+  pointer-events:none;
+}
+#subtitle-box.show{
+  opacity:1;
+  pointer-events:auto;
+}
+#subtitle-box:hover{
+  background:rgba(0,0,0,0.75);
+}
+
+/* 자막 텍스트 */
+#subtitle-text{
+  color:white;
+  font-size:1.1rem;
+  line-height:1.6;
+  font-family:"Orbit", sans-serif;
+  width:100%;
+  max-width:90%;
+}
+
+/* 타이핑 커서 */
+#typing-cursor{
+  display:inline-block;
+  width:2px;
+  height:1.2em;
+  background:white;
+  margin-left:4px;
+  animation:blinkCursor 1s infinite;
+  vertical-align:middle;
+}
+
+@keyframes blinkCursor{
+  0%,50%{opacity:1;}
+  51%,100%{opacity:0;}
+}
+
 #game-container{
   width:80vw;
   height:70vh;
-  background:rgba(255,255,255,0.1);
-  border:3px solid rgba(255,255,255,0.3);
-  border-radius:20px;
+  background:transparent;
+  border:none;
   position:relative;
-  backdrop-filter:blur(10px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+#game-container.show{
+  opacity:1;
+  pointer-events:auto;
 }
 
-#map{
-  width:100%;
-  height:100%;
-  position:relative;
-  background:rgba(255,255,255,0.05);
-  border-radius:17px;
-}
-
-#player{
-  position:absolute;
-  width:30px;
-  height:30px;
-  background:#4cff65;
-  border:3px solid #fff;
-  border-radius:5px;
-  top:50%;
-  left:20%;
-  transform:translate(-50%,-50%);
-  transition:all 0.2s;
+#game-instruction{
+  position:fixed;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:1.1rem;
   z-index:10;
-  box-shadow:0 0 20px rgba(76,255,101,0.6);
+  background:rgba(0,0,0,0.75);
+  padding:12px 30px;
+  border-radius:10px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  text-align:center;
+  backdrop-filter:blur(5px);
+  font-family:"Orbit", sans-serif;
+}
+#game-instruction.show{
+  opacity:1;
+  pointer-events:auto;
 }
 
-#station{
-  position:absolute;
-  width:50px;
-  height:50px;
-  background:#ff6b6b;
-  border:4px solid #fff;
-  border-radius:50%;
-  top:30%;
-  right:25%;
-  transform:translate(50%,-50%);
-  z-index:5;
-  box-shadow:0 0 30px rgba(255,107,107,0.8);
-  animation:pulse 2s infinite;
+/* 상태 메시지 */
+#status-message{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  color:white;
+  font-size:1.3rem;
+  z-index:10;
+  background:rgba(0,0,0,0.75);
+  padding:20px 40px;
+  border-radius:15px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  text-align:center;
+  backdrop-filter:blur(5px);
 }
-
-@keyframes pulse{
-  0%,100%{transform:translate(50%,-50%) scale(1);}
-  50%{transform:translate(50%,-50%) scale(1.1);}
+#status-message.show{
+  opacity:1;
+  pointer-events:auto;
 }
 
 #noise-overlay{
@@ -142,6 +371,33 @@ body{
 
 #noise-overlay.show{
   opacity:1;
+}
+
+/* 지지직 효과용 강한 노이즈 */
+#glitch-overlay{
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity:0;
+  pointer-events:none;
+  z-index:1500;
+  mix-blend-mode:screen;
+}
+
+#glitch-overlay.show{
+  animation:glitchFlicker 0.6s ease-out forwards;
+}
+
+@keyframes glitchFlicker{
+  0%{opacity:0; transform:translateX(0);}
+  10%{opacity:0.9; transform:translateX(-3px);}
+  20%{opacity:0.7; transform:translateX(3px);}
+  30%{opacity:0.85; transform:translateX(-2px);}
+  40%{opacity:0.6; transform:translateX(2px);}
+  50%{opacity:0.8; transform:translateX(-1px);}
+  60%{opacity:0.5; transform:translateX(1px);}
+  70%{opacity:0.3; transform:translateX(0);}
+  100%{opacity:0; transform:translateX(0);}
 }
 
 #success-overlay{
@@ -191,6 +447,23 @@ body{
   margin:10px 0;
 }
 
+#station-next-btn{
+  margin-top:10px;
+  padding:8px 18px;
+  border-radius:999px;
+  border:none;
+  background:#667eea;
+  color:#fff;
+  font-size:1.1rem;
+  cursor:pointer;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+
+#station-next-btn:hover{
+  transform:translateY(-1px);
+}
+
+/* 힌트 텍스트 */
 #hint{
   position:fixed;
   bottom:30px;left:50%;
@@ -199,8 +472,11 @@ body{
   font-size:1rem;
   z-index:10;
   text-shadow:0 2px 10px rgba(0,0,0,0.5);
+  opacity:0;
+  transition:opacity 0.5s;
 }
 
+/* 커서 점 */
 #cursor-dot{
   position:fixed;
   width:14px;height:14px;
@@ -210,113 +486,772 @@ body{
   pointer-events:none;
   z-index:9999;
 }
+
+/* 커서 따라오는 집 이미지 */
+#home-container{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:1000;
+}
+
+.home{
+  position:absolute;
+  width:100px;
+  pointer-events:none;
+  mix-blend-mode:screen;
+  opacity:0.8;
+  transition:transform 0.1s ease-out, opacity 0.5s ease-out;
+  will-change:transform;
+  z-index:1000;
+}
+
+/* 캡챠 모달 */
+#captcha-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1500;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s;
+}
+
+#captcha-modal.show{
+  opacity:1;
+  pointer-events:auto;
+  animation:captchaFloat 12s ease-in-out infinite;
+}
+
+/* 캡챠창 약하게 떠다니는 효과 */
+@keyframes captchaFloat{
+  0%, 100%{
+    transform:translate(0, 0);
+  }
+  25%{
+    transform:translate(-15px, -10px);
+  }
+  50%{
+    transform:translate(10px, -20px);
+  }
+  75%{
+    transform:translate(-10px, 15px);
+  }
+}
+
+#captcha-box{
+  width:60%;
+  max-width:450px;
+  background:#C0C0C0;
+  border:3px outset #C0C0C0;
+  padding:0;
+  color:#000;
+  text-align:center;
+  box-shadow:inset 1px 1px 0px #000, inset -1px -1px 0px #fff, 2px 2px 4px rgba(0,0,0,0.3);
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  position:relative;
+}
+
+#captcha-title{
+  background:#000080;
+  color:#fff;
+  font-size:0.9rem;
+  margin:0;
+  padding:4px 8px;
+  text-align:left;
+  font-weight:normal;
+  border-bottom:2px solid #000;
+}
+
+#captcha-text{
+  font-size:0.85rem;
+  line-height:1.5;
+  margin:15px 20px;
+  color:#000;
+}
+
+#captcha-image-container{
+  margin:10px 20px 15px;
+}
+
+#captcha-image-container.single img{
+  max-width:100%;
+  border:2px inset #C0C0C0;
+  box-shadow:inset 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+#captcha-image-container.multiple{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+
+.captcha-thumb{
+  position:relative;
+  overflow:hidden;
+  border:2px outset #C0C0C0;
+  cursor:pointer;
+  transition:border 0.1s;
+  background:#C0C0C0;
+}
+
+.captcha-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.captcha-thumb.selected{
+  border:2px inset #C0C0C0;
+}
+
+.captcha-thumb:active{
+  border:2px inset #C0C0C0;
+}
+
+#captcha-options{
+  margin:15px 20px;
+  text-align:center;
+}
+
+.captcha-btn{
+  display:inline-block;
+  margin:0 4px;
+  padding:4px 16px;
+  border:2px outset #C0C0C0;
+  background:#C0C0C0;
+  font-size:0.75rem;
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  cursor:pointer;
+  box-shadow:none;
+  min-width:75px;
+}
+
+.captcha-btn:active{
+  border:2px inset #C0C0C0;
+}
+
+.captcha-btn.primary{
+  background:#C0C0C0;
+  color:#000;
+}
+
+.captcha-btn.secondary{
+  background:#C0C0C0;
+  color:#000;
+}
+
+#captcha-error{
+  margin:10px 20px;
+  color:#000;
+  font-size:0.75rem;
+  min-height:1.1em;
+  background:#FFE4E1;
+  padding:4px 8px;
+  border:1px inset #C0C0C0;
+}
 </style>
 </head>
 <body>
 
+<div id="background-overlay"></div>
+<div id="background-overlay-2"></div>
+<div id="black-overlay"></div>
+<div id="error-overlay"></div>
 <img id="web-frame" src="web frame.png" alt="frame">
 <div id="window-noise"></div>
 <div id="scanlines"></div>
 <div id="chapter-label">CHAPTER 4</div>
-<div id="game-container">
-  <div id="map">
-    <div id="player"></div>
-    <div id="station"></div>
+<div id="music-player">
+  <div id="music-player-title">음악 플레이어</div>
+  <div id="music-player-content">
+    <button id="music-toggle">재생</button>
+    <div id="volume-control">
+      <span>🔊</span>
+      <input type="range" id="volume-slider" min="0" max="100" value="50">
+    </div>
   </div>
+</div>
+<audio id="bgmusic" loop>
+  <source src="bgmusic.mp3" type="audio/mpeg">
+</audio>
+
+<div id="speaker-label">YOU</div>
+<div id="subtitle-box">
+  <div id="subtitle-text"></div>
+</div>
+
+<div id="game-instruction">클릭하여 여러 질문들을 클리어하세요.</div>
+<div id="game-container">
+  <div id="status-message"></div>
 </div>
 
 <div id="noise-overlay"></div>
+<div id="glitch-overlay"></div>
 <div id="success-overlay"></div>
 
 <div id="success-message">
-  <h2>역을 찾았어요!</h2>
-  <p>"이제는 내가 길을 찾을 수 있어."</p>
-  <p>"여기서도 살아갈 수 있을 것 같아."</p>
-  <p>"아… 여기도 나쁘지 않다."</p>
+  <h2>기차역에 도착했습니다.</h2>
+  <p id="station-text-1">"기차역에 도착했습니다."</p>
+  <p id="final-text" style="display:none; margin-top:20px; font-size:1rem; color:#333;">이제 고향으로 돌아갈 수 있겠네요.</p>
+  <button id="station-next-btn">&gt;</button>
+  <p id="station-text-2" style="display:none;">마지막 문을 열고 엔딩을 보세요.</p>
 </div>
 
-<div id="hint">화살표 키로 이동하세요</div>
+<div id="captcha-modal">
+  <div id="captcha-box">
+    <h2 id="captcha-title"></h2>
+    <p id="captcha-text"></p>
+    <div id="captcha-image-container"></div>
+    <div id="captcha-options"></div>
+    <p id="captcha-error"></p>
+  </div>
+</div>
+
+<div id="hint">화살표 키로 한 블럭 이동해 보세요</div>
+<div id="home-container"></div>
 <div id="cursor-dot"></div>
 
 <script>
-const player = document.getElementById("player");
-const station = document.getElementById("station");
 const noiseOverlay = document.getElementById("noise-overlay");
+const glitchOverlay = document.getElementById("glitch-overlay");
 const successOverlay = document.getElementById("success-overlay");
 const successMessage = document.getElementById("success-message");
 const cursor = document.getElementById("cursor-dot");
+const homeContainer = document.getElementById("home-container");
+const hint = document.getElementById("hint");
+const subtitleText = document.getElementById("subtitle-text");
+const bgmusic = document.getElementById("bgmusic");
+const musicToggle = document.getElementById("music-toggle");
+const volumeSlider = document.getElementById("volume-slider");
+
+// 음악 플레이어 제어
+musicToggle.addEventListener("click", () => {
+  if(bgmusic.paused){
+    bgmusic.play();
+    musicToggle.textContent = "정지";
+  }else{
+    bgmusic.pause();
+    musicToggle.textContent = "재생";
+  }
+});
+
+volumeSlider.addEventListener("input", (e) => {
+  bgmusic.volume = e.target.value / 100;
+});
+const subtitleBox = document.getElementById("subtitle-box");
+const speakerLabel = document.getElementById("speaker-label");
+const errorOverlay = document.getElementById("error-overlay");
+const gameContainer = document.getElementById("game-container");
+const statusMessage = document.getElementById("status-message");
+const gameInstruction = document.getElementById("game-instruction");
+
+// 초기 메시지
+const messages = [
+  "도서관까지 들렀더니 시간이 너무 지체됐잖아.",
+  "나도 모르게 편안하게 있고 말았네.",
+  "그치만...",
+  "묘하게 긴장이 풀리는걸...",
+  "마음이 왜이러지? 일단 기차역부터 빨리 찾아가야겠어.",
+  "한 블럭 간 후에 왼쪽으로 꺾고 두 블럭 더 가서 오른쪽으로 꺾으라 했었지?"
+];
+
+let currentMessageIndex = 0;
+let isTyping = false;
+let typingTimeout = null;
+
+// 타이핑 효과 함수
+function typeText(text, callback){
+  // 최종 메시지 단계인지 확인
+  const isFinalStage = hasDoneTrains && finalMessageIndex >= 0;
+  
+  if(isFinalStage){
+    if(isTypingFinal) return;
+    isTypingFinal = true;
+  } else {
+    if(isTyping) return;
+    isTyping = true;
+  }
+  
+  subtitleText.innerHTML = "";
+  let charIndex = 0;
+  
+  function typeChar(){
+    if(charIndex < text.length){
+      subtitleText.innerHTML = text.substring(0, charIndex + 1) + '<span id="typing-cursor"></span>';
+      charIndex++;
+      const timeout = isFinalStage ? 
+        (finalTypingTimeout = setTimeout(typeChar, 50)) :
+        (typingTimeout = setTimeout(typeChar, 50));
+    } else {
+      subtitleText.innerHTML = text;
+      if(isFinalStage){
+        isTypingFinal = false;
+      } else {
+        isTyping = false;
+      }
+      if(callback) callback();
+    }
+  }
+  
+  typeChar();
+}
+
+// 파란 화면 페이드아웃 후 첫 메시지 표시
+setTimeout(() => {
+  errorOverlay.classList.add("fade-out");
+  setTimeout(() => {
+    speakerLabel.classList.add("show");
+    subtitleBox.classList.add("show");
+    typeText(messages[0]);
+  }, 1000);
+}, 2100); // 검은 오버레이가 사라진 후
+
+// 텍스트 박스 클릭 이벤트
+subtitleBox.addEventListener("click", () => {
+  // 최종 메시지 단계 체크
+  if(hasDoneTrains && finalMessageIndex >= 0){
+    if(isTypingFinal){
+      // 타이핑 중이면 즉시 완성
+      clearTimeout(finalTypingTimeout);
+      subtitleText.innerHTML = finalMessages[finalMessageIndex];
+      isTypingFinal = false;
+      return;
+    }
+    
+    finalMessageIndex++;
+    
+    if(finalMessageIndex < finalMessages.length){
+      // 다음 메시지 타이핑
+      typeText(finalMessages[finalMessageIndex], () => {
+        isTypingFinal = false;
+      });
+    } else {
+      // 마지막 메시지 후 텍스트 박스 사라지고 중앙 메시지 표시
+      subtitleBox.classList.remove("show");
+      speakerLabel.classList.remove("show");
+      
+      setTimeout(() => {
+        // 중앙 메시지 표시
+        statusMessage.textContent = "마지막 문을 열고 엔딩을 보세요.";
+        statusMessage.classList.add("show");
+        
+        // doors.html로 이동
+        setTimeout(() => {
+          location.href = "doors.html";
+        }, 3000);
+      }, 500);
+    }
+    return;
+  }
+  
+  // 초기 메시지 단계
+  if(isTyping){
+    // 타이핑 중이면 즉시 완성
+    clearTimeout(typingTimeout);
+    subtitleText.innerHTML = messages[currentMessageIndex];
+    isTyping = false;
+    return;
+  }
+  
+  currentMessageIndex++;
+  
+  if(currentMessageIndex < messages.length){
+    // 다음 메시지 타이핑
+    typeText(messages[currentMessageIndex]);
+  } else {
+    // 마지막 메시지 후 게임 시작
+    subtitleBox.classList.remove("show");
+    speakerLabel.classList.remove("show");
+    setTimeout(() => {
+      gameContainer.classList.add("show");
+      gameInstruction.classList.add("show");
+      hint.style.opacity = "1";
+      hint.textContent = "화면을 클릭하여 시작하세요";
+    }, 500);
+  }
+});
+
+// 최종 버튼/텍스트
+const stationNextBtn = document.getElementById("station-next-btn");
+const stationText2 = document.getElementById("station-text-2");
+
+// 캡챠 요소들
+const captchaModal = document.getElementById("captcha-modal");
+const captchaTitle = document.getElementById("captcha-title");
+const captchaText = document.getElementById("captcha-text");
+const captchaImgContainer = document.getElementById("captcha-image-container");
+const captchaOptions = document.getElementById("captcha-options");
+const captchaError = document.getElementById("captcha-error");
+
+// 집 아이콘 따라오기
+const homeImgs = ['home2.png', 'home.png'];
+let lastCreateTime = 0;
+
+function createHomeImage(x, y){
+  const img = document.createElement('img');
+  img.src = homeImgs[Math.floor(Math.random() * homeImgs.length)];
+  img.className = 'home';
+  img.style.left = x + 'px';
+  img.style.top = y + 'px';
+
+  if(Math.random() > 0.5){
+    img.style.width = '80px';
+    img.style.opacity = '0.6';
+    img.style.filter = 'blur(1.5px)';
+  }
+
+  homeContainer.appendChild(img);
+
+  setTimeout(() => {
+    img.style.opacity = 0;
+    setTimeout(() => img.remove(), 500);
+  }, 800);
+}
 
 document.addEventListener("mousemove", e => {
   cursor.style.left = e.clientX + "px";
   cursor.style.top = e.clientY + "px";
+  
+  // 집 이미지 생성
+  const now = Date.now();
+  if(now - lastCreateTime > 50){
+    createHomeImage(e.clientX, e.clientY);
+    lastCreateTime = now;
+  }
 });
 
-let playerX = 20;
-let playerY = 50;
+// 게임 상태
+let hasMovedFirstBlock = false;   // 한 블럭 이동 완료 여부
+let hasTurnedLeft = false;        // 왼쪽으로 꺾음 여부
+let hasDoneSigns = false;         // 표지판 캡챠 완료 여부
+let hasDoneTrains = false;        // 기차 캡챠 완료 여부
 
-const keys = {};
-document.addEventListener("keydown", e => {
-  keys[e.key] = true;
-  movePlayer();
-});
-
-document.addEventListener("keyup", e => {
-  keys[e.key] = false;
-});
-
-function movePlayer(){
-  const step = 1.5;
-  
-  if(keys["ArrowUp"] || keys["w"] || keys["W"]){
-    playerY = Math.max(5, playerY - step);
-  }
-  if(keys["ArrowDown"] || keys["s"] || keys["S"]){
-    playerY = Math.min(95, playerY + step);
-  }
-  if(keys["ArrowLeft"] || keys["a"] || keys["A"]){
-    playerX = Math.max(5, playerX - step);
-  }
-  if(keys["ArrowRight"] || keys["d"] || keys["D"]){
-    playerX = Math.min(95, playerX + step);
-  }
-  
-  player.style.left = playerX + "%";
-  player.style.top = playerY + "%";
-  
-  checkStation();
-  
-  if(playerX < 10 || playerX > 90 || playerY < 10 || playerY > 90){
-    noiseOverlay.classList.add("show");
-    setTimeout(() => {
-      noiseOverlay.classList.remove("show");
-    }, 300);
-  }
+// 캡챠 열려있는지 여부
+function isCaptchaOpen(){
+  return captchaModal.classList.contains("show");
 }
 
-function checkStation(){
-  const playerRect = player.getBoundingClientRect();
-  const stationRect = station.getBoundingClientRect();
+function openCaptcha(){
+  captchaModal.classList.add("show");
+  captchaError.textContent = "";
+}
+
+function closeCaptcha(){
+  captchaModal.classList.remove("show");
+  captchaImgContainer.innerHTML = "";
+  captchaOptions.innerHTML = "";
+  captchaError.textContent = "";
+  captchaImgContainer.classList.remove("single","multiple");
+}
+
+// 공통 버튼 세팅
+function createButton(text, type="primary"){
+  const btn = document.createElement("button");
+  btn.textContent = text;
+  btn.classList.add("captcha-btn");
+  if(type === "primary") btn.classList.add("primary");
+  else btn.classList.add("secondary");
+  return btn;
+}
+
+// ----- 1단계: 자동차 예/아니오 캡챠 -----
+let carPhase = 0; // 0: 자동차 없는 사진, 1: 자동차 있는 사진
+
+function startCarCaptcha(){
+  // 지지직 효과 시작
+  if(glitchOverlay){
+    glitchOverlay.classList.add("show");
+  }
   
-  const distance = Math.sqrt(
-    Math.pow(playerRect.left + playerRect.width/2 - (stationRect.left + stationRect.width/2), 2) +
-    Math.pow(playerRect.top + playerRect.height/2 - (stationRect.top + stationRect.height/2), 2)
-  );
+  // 지지직 효과 후 캡챠 표시
+  setTimeout(() => {
+    if(glitchOverlay){
+      glitchOverlay.classList.remove("show");
+    }
+    openCaptcha();
+    carPhase = 0;
+    captchaTitle.textContent = "한 블럭 이동";
+    captchaText.innerHTML = "한 블럭 이동 시 <b>자동차가 보여야</b> 합니다.<br>아래 사진은 자동차가 포함된 사진인가요?";
+    captchaImgContainer.innerHTML = "";
+    captchaImgContainer.classList.add("single");
+
+    const img = document.createElement("img");
+    // 자동차 없는 사진 (네가 가진 이미지로 변경해)
+    img.src = "carnone.png";
+    img.alt = "자동차가 없는 사진";
+    captchaImgContainer.appendChild(img);
+
+    captchaOptions.innerHTML = "";
+    const yesBtn = createButton("예","primary");
+    const noBtn = createButton("아니오","secondary");
+    captchaOptions.appendChild(yesBtn);
+    captchaOptions.appendChild(noBtn);
+
+    yesBtn.onclick = () => {
+      if(carPhase === 1){
+        // 정답
+        closeCaptcha();
+        hasMovedFirstBlock = true;
+        showStatusMessage("왼쪽으로 꺾는중", 2000);
+        hint.textContent = "화면을 다시 클릭하세요";
+      }else{
+        captchaError.textContent = "다시 생각해 보세요.";
+      }
+    };
+
+    noBtn.onclick = () => {
+      if(carPhase === 0){
+        // 두 번째 사진(자동차 있는 사진)으로 변경
+        carPhase = 1;
+        img.src = "caryes.png"; // 자동차 있는 사진으로 바꿔줘
+        img.alt = "자동차가 있는 사진";
+        captchaText.innerHTML = "이번 사진은 자동차가 포함된 사진인가요?";
+        captchaError.textContent = "";
+      }else{
+        captchaError.textContent = "다시 생각해 보세요.";
+      }
+    };
+  }, 800); // 0.8초 지지직 효과 후 캡챠 표시
+}
+
+// ----- 2단계: 표지판 여러 장 선택 -----
+function startSignCaptcha(){
+  // 배경 이미지를 road2.png로 변경
+  const backgroundOverlay = document.getElementById("background-overlay");
+  if(backgroundOverlay){
+    backgroundOverlay.classList.add("show");
+  }
   
-  if(distance < 50){
-    successOverlay.classList.add("show");
-    successMessage.classList.add("show");
-    
+  openCaptcha();
+  captchaTitle.textContent = "왼쪽으로 꺾기";
+  captchaText.innerHTML = "왼쪽으로 꺾었을 때 <b>표지판이 보여야</b> 합니다.<br>표지판이 포함된 사진을 모두 고르시오.";
+  captchaImgContainer.innerHTML = "";
+  captchaImgContainer.classList.add("multiple");
+
+  const imgs = [
+    {src:"sign1.png", alt:"표지판 있는 사진 1", correct:true},
+    {src:"sign2.png", alt:"표지판 없는 사진 2", correct:false},
+    {src:"sign3.png", alt:"표지판 있는 사진 3", correct:true},
+    {src:"sign4.png", alt:"표지판 없는 사진 4", correct:false},
+    {src:"sign5.png", alt:"표지판 없는 사진 5", correct:false},
+    {src:"sign6.png", alt:"표지판 있는 사진 6", correct:true}
+  ];
+
+  const selected = new Set();
+
+  imgs.forEach((info, index) => {
+    const wrap = document.createElement("div");
+    wrap.classList.add("captcha-thumb");
+    wrap.dataset.correct = info.correct ? "true" : "false";
+    wrap.dataset.index = index.toString();
+
+    const img = document.createElement("img");
+    img.src = info.src; // 실제 표지판/배경 이미지로 교체
+    img.alt = info.alt;
+
+    wrap.appendChild(img);
+    captchaImgContainer.appendChild(wrap);
+
+    wrap.addEventListener("click", () => {
+      if(selected.has(index)){
+        selected.delete(index);
+        wrap.classList.remove("selected");
+      }else{
+        selected.add(index);
+        wrap.classList.add("selected");
+      }
+      captchaError.textContent = "";
+    });
+  });
+
+  captchaOptions.innerHTML = "";
+  const confirmBtn = createButton("선택 완료","primary");
+  const cancelBtn = createButton("다시 선택","secondary");
+  captchaOptions.appendChild(confirmBtn);
+  captchaOptions.appendChild(cancelBtn);
+
+  confirmBtn.onclick = () => {
+    // 정답: correct=true인 것만 모두 선택, 나머지는 선택 X
+    let ok = true;
+    imgs.forEach((info, index) => {
+      const shouldBe = !!info.correct;
+      const isSelected = selected.has(index);
+      if(shouldBe !== isSelected) ok = false;
+    });
+
+    if(ok){
+      closeCaptcha();
+      hasTurnedLeft = true;
+      hasDoneSigns = true;
+      showStatusMessage("두 블럭 이동중..", 2000);
+      hint.textContent = "화면을 다시 클릭하세요";
+    }else{
+      captchaError.textContent = "표지판이 있는 사진만, 그리고 모두 골라야 합니다.";
+    }
+  };
+
+  cancelBtn.onclick = () => {
+    selected.clear();
+    document.querySelectorAll(".captcha-thumb").forEach(el => el.classList.remove("selected"));
+    captchaError.textContent = "";
+  };
+}
+
+// ----- 3단계: 기차 여러 장 선택 -----
+function startTrainCaptcha(){
+  // 배경 이미지를 road3.png로 변경
+  const backgroundOverlay2 = document.getElementById("background-overlay-2");
+  if(backgroundOverlay2){
+    backgroundOverlay2.classList.add("show");
+  }
+  
+  openCaptcha();
+  captchaTitle.textContent = "마지막으로 오른쪽으로 꺾기";
+  captchaText.innerHTML = "오른쪽으로 꺾었을 때 <b>기차가 보여야</b> 합니다.<br>기차가 포함된 사진을 모두 고르시오.";
+  captchaImgContainer.innerHTML = "";
+  captchaImgContainer.classList.add("multiple");
+
+  const imgs = [
+    {src:"train1.png", alt:"기차 있는 사진 1", correct:true},
+    {src:"train2.png", alt:"기차 없는 사진 2", correct:false},
+    {src:"train3.png", alt:"기차 있는 사진 3", correct:true},
+    {src:"train4.png", alt:"기차 없는 사진 4", correct:false}
+  ];
+
+  const selected = new Set();
+
+  imgs.forEach((info, index) => {
+    const wrap = document.createElement("div");
+    wrap.classList.add("captcha-thumb");
+    wrap.dataset.correct = info.correct ? "true" : "false";
+    wrap.dataset.index = index.toString();
+
+    const img = document.createElement("img");
+    img.src = info.src; // 실제 기차/배경 이미지로 교체
+    img.alt = info.alt;
+
+    wrap.appendChild(img);
+    captchaImgContainer.appendChild(wrap);
+
+    wrap.addEventListener("click", () => {
+      if(selected.has(index)){
+        selected.delete(index);
+        wrap.classList.remove("selected");
+      }else{
+        selected.add(index);
+        wrap.classList.add("selected");
+      }
+      captchaError.textContent = "";
+    });
+  });
+
+  captchaOptions.innerHTML = "";
+  const confirmBtn = createButton("선택 완료","primary");
+  const cancelBtn = createButton("다시 선택","secondary");
+  captchaOptions.appendChild(confirmBtn);
+  captchaOptions.appendChild(cancelBtn);
+
+  confirmBtn.onclick = () => {
+    let ok = true;
+    imgs.forEach((info, index) => {
+      const shouldBe = !!info.correct;
+      const isSelected = selected.has(index);
+      if(shouldBe !== isSelected) ok = false;
+    });
+
+    if(ok){
+      closeCaptcha();
+      hasDoneTrains = true;
+      finalMessageIndex = 0;
+      showFinalMessages();
+    }else{
+      captchaError.textContent = "기차가 있는 사진만, 그리고 모두 골라야 합니다.";
+    }
+  };
+
+  cancelBtn.onclick = () => {
+    selected.clear();
+    document.querySelectorAll(".captcha-thumb").forEach(el => el.classList.remove("selected"));
+    captchaError.textContent = "";
+  };
+}
+
+// 상태 메시지 표시
+function showStatusMessage(text, duration = 2000){
+  statusMessage.textContent = text;
+  statusMessage.classList.add("show");
+  setTimeout(() => {
+    statusMessage.classList.remove("show");
+  }, duration);
+}
+
+// 최종 메시지 (doorone 스타일)
+const finalMessages = [
+  "드디어 도착했네.",
+  "그런데..."
+];
+
+let finalMessageIndex = -1;
+let isTypingFinal = false;
+let finalTypingTimeout = null;
+
+function showFinalMessages(){
+  // 텍스트 박스 표시
+  speakerLabel.classList.add("show");
+  subtitleBox.classList.add("show");
+  finalMessageIndex = 0;
+  
+  // 첫 메시지 타이핑
+  isTypingFinal = true;
+  typeText(finalMessages[0], () => {
+    isTypingFinal = false;
+  });
+}
+
+// 게임 컨테이너 클릭 이벤트
+gameContainer.addEventListener("click", (e) => {
+  // 캡챠 모달 내부 클릭은 무시
+  if(e.target.closest("#captcha-modal")) return;
+  
+  // 캡챠 떠 있을 땐 무시
+  if(isCaptchaOpen()) return;
+
+  // 아직 한 블럭 이동 전 → 첫 클릭 시 자동차 캡챠
+  if(!hasMovedFirstBlock){
+    startCarCaptcha();
+    return;
+  }
+
+  // 자동차 캡챠 끝났고, 아직 왼쪽으로 안 꺾었으면 클릭 시 표지판 캡챠
+  if(hasMovedFirstBlock && !hasDoneSigns){
+    startSignCaptcha();
+    return;
+  }
+
+  // 표지판 캡챠 끝났고, 클릭 시 기차 캡챠
+  if(hasDoneSigns && !hasDoneTrains){
+    startTrainCaptcha();
+    return;
+  }
+});
+
+// 최종 ">" 클릭 시 문구 보여주고 doors.html로 이동
+if(stationNextBtn){
+  stationNextBtn.addEventListener("click", () => {
+    stationText2.style.display = "block";
     setTimeout(() => {
       location.href = "doors.html";
-    }, 5000);
-  }
+    }, 3000);
+  });
 }
-
-setInterval(() => {
-  if(Object.values(keys).some(k => k)){
-    movePlayer();
-  }
-}, 16);
 </script>
 
 </body>

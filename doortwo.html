@@ -41,6 +41,87 @@ body{
   100%{opacity:0;}
 }
 
+/* 음악 플레이어 - 윈도우 창 스타일 */
+#music-player{
+  position:fixed;
+  top:120px;
+  right:100px;
+  z-index:200;
+  background:#C0C0C0;
+  border:3px outset #C0C0C0;
+  padding:0;
+  box-shadow:inset 1px 1px 0px #000, inset -1px -1px 0px #fff, 2px 2px 4px rgba(0,0,0,0.3);
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:200px;
+}
+
+#music-player-title{
+  background:#000080;
+  color:#fff;
+  font-size:0.75rem;
+  margin:0;
+  padding:3px 6px;
+  text-align:left;
+  font-weight:normal;
+  border-bottom:2px solid #000;
+}
+
+#music-player-content{
+  padding:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#music-toggle{
+  background:#C0C0C0;
+  border:2px outset #C0C0C0;
+  color:#000;
+  padding:3px 12px;
+  cursor:pointer;
+  font-size:0.7rem;
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:50px;
+}
+
+#music-toggle:active{
+  border:2px inset #C0C0C0;
+}
+
+#volume-control{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:0.7rem;
+  color:#000;
+}
+
+#volume-slider{
+  width:70px;
+  height:4px;
+  background:#C0C0C0;
+  border:1px inset #C0C0C0;
+  outline:none;
+  cursor:pointer;
+}
+
+#volume-slider::-webkit-slider-thumb{
+  appearance:none;
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
+}
+
+#volume-slider::-moz-range-thumb{
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
+}
+
 /* 챕터 표시 */
 #chapter-label{
   position:fixed;
@@ -113,7 +194,7 @@ body{
 /* 스피커 라벨 */
 #speaker-label{
   position:fixed;
-  bottom:180px;
+  bottom:210px;
   left:50%;
   transform:translateX(-50%);
   margin-left:-280px;
@@ -136,7 +217,7 @@ body{
 /* 자막바 */
 #subtitle-box{
   position:fixed;
-  bottom:60px;
+  bottom:90px;
   left:50%;
   transform:translateX(-50%);
   width:600px;
@@ -392,6 +473,28 @@ body{
   pointer-events:auto;
 }
 
+/* 중앙 안내 문구 */
+#center-hint{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  color:white;
+  font-size:1.1rem;
+  z-index:10;
+  background:rgba(0,0,0,0.75);
+  padding:15px 30px;
+  border-radius:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  text-align:center;
+}
+#center-hint.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
 /* 카메라 흔들림 */
 @keyframes cameraShake{
   0%{transform:translateX(0px);}
@@ -426,6 +529,19 @@ body{
 <div id="window-noise"></div>
 <div id="scanlines"></div>
 <div id="chapter-label">CHAPTER 2</div>
+<div id="music-player">
+  <div id="music-player-title">음악 플레이어</div>
+  <div id="music-player-content">
+    <button id="music-toggle">재생</button>
+    <div id="volume-control">
+      <span>🔊</span>
+      <input type="range" id="volume-slider" min="0" max="100" value="50">
+    </div>
+  </div>
+</div>
+<audio id="bgmusic" loop>
+  <source src="bgmusic.mp3" type="audio/mpeg">
+</audio>
 <div id="bg-image"></div>
 <div id="black-overlay"></div>
 <div id="error-overlay"></div>
@@ -453,6 +569,7 @@ body{
 <div id="home-container"></div>
 <div id="top-hint">주민들을 클릭해보세요</div>
 <div id="hint">주민들을 클릭해보세요</div>
+<div id="center-hint">주민을 클릭하여 대화해보세요.</div>
 <div id="cursor-dot"></div>
 
 <!-- 대화 화면 -->
@@ -471,9 +588,28 @@ const cursor = document.getElementById("cursor-dot");
 const dialogueScene = document.getElementById("dialogue-scene");
 const dialogueText = document.getElementById("dialogue-text");
 const dialoguePerson = document.getElementById("dialogue-person");
+const bgmusic = document.getElementById("bgmusic");
+const musicToggle = document.getElementById("music-toggle");
+const volumeSlider = document.getElementById("volume-slider");
+
+// 음악 플레이어 제어
+musicToggle.addEventListener("click", () => {
+  if(bgmusic.paused){
+    bgmusic.play();
+    musicToggle.textContent = "정지";
+  }else{
+    bgmusic.pause();
+    musicToggle.textContent = "재생";
+  }
+});
+
+volumeSlider.addEventListener("input", (e) => {
+  bgmusic.volume = e.target.value / 100;
+});
 const dialogueSpeaker = document.getElementById("dialogue-speaker");
 const residentsContainer = document.getElementById("residents-container");
 const hint = document.getElementById("hint");
+const centerHint = document.getElementById("center-hint");
 const subtitleBox = document.getElementById("subtitle-box");
 const subtitleText = document.getElementById("subtitle-text");
 const speakerLabel = document.getElementById("speaker-label");
@@ -615,10 +751,20 @@ subtitleBox.addEventListener("click", () => {
     setTimeout(() => {
       subtitleBox.style.pointerEvents = "none";
       speakerLabel.style.pointerEvents = "none";
-      canClickResidents = true;
-      residentsContainer.classList.add("active");
-      hint.style.opacity = "0.7";
-      topHint.classList.add("show");
+      
+      // 중앙 안내 문구 표시
+      centerHint.classList.add("show");
+      
+      // 3초 후 자동으로 사라지고 주민 클릭 가능하게
+      setTimeout(() => {
+        centerHint.classList.remove("show");
+        setTimeout(() => {
+          canClickResidents = true;
+          residentsContainer.classList.add("active");
+          hint.style.opacity = "0.7";
+          topHint.classList.add("show");
+        }, 500);
+      }, 3000);
     }, 300);
   }
 });

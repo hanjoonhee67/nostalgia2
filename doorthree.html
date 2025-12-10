@@ -11,9 +11,91 @@ body{
   width:100vw;height:100vh;
   overflow:hidden;
   background:url('newlibrary.png') center/cover no-repeat;
-  font-family:"Orbit";
+  font-family:"Orbit", sans-serif;
   cursor:none;
   position:relative;
+  transition:background 1s ease;
+}
+
+/* 음악 플레이어 - 윈도우 창 스타일 */
+#music-player{
+  position:fixed;
+  top:120px;
+  right:100px;
+  z-index:200;
+  background:#C0C0C0;
+  border:3px outset #C0C0C0;
+  padding:0;
+  box-shadow:inset 1px 1px 0px #000, inset -1px -1px 0px #fff, 2px 2px 4px rgba(0,0,0,0.3);
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:200px;
+}
+
+#music-player-title{
+  background:#000080;
+  color:#fff;
+  font-size:0.75rem;
+  margin:0;
+  padding:3px 6px;
+  text-align:left;
+  font-weight:normal;
+  border-bottom:2px solid #000;
+}
+
+#music-player-content{
+  padding:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#music-toggle{
+  background:#C0C0C0;
+  border:2px outset #C0C0C0;
+  color:#000;
+  padding:3px 12px;
+  cursor:pointer;
+  font-size:0.7rem;
+  font-family:"MS Sans Serif", "Segoe UI", sans-serif;
+  min-width:50px;
+}
+
+#music-toggle:active{
+  border:2px inset #C0C0C0;
+}
+
+#volume-control{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:0.7rem;
+  color:#000;
+}
+
+#volume-slider{
+  width:70px;
+  height:4px;
+  background:#C0C0C0;
+  border:1px inset #C0C0C0;
+  outline:none;
+  cursor:pointer;
+}
+
+#volume-slider::-webkit-slider-thumb{
+  appearance:none;
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
+}
+
+#volume-slider::-moz-range-thumb{
+  width:10px;
+  height:10px;
+  background:#C0C0C0;
+  border:1px outset #C0C0C0;
+  cursor:pointer;
 }
 
 /* 챕터 */
@@ -72,10 +154,117 @@ body{
   mix-blend-mode:multiply;
 }
 
+/* hometown.png 전체 화면 오버레이 */
+#hometown-fullscreen{
+  position:fixed;
+  inset:0;
+  background:url('hometown.png') center/cover no-repeat;
+  z-index:50;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s;
+}
+#hometown-fullscreen.show{
+  opacity:1;
+}
+#hometown-fullscreen.flicker{
+  animation:flickerEffect 0.5s;
+}
+@keyframes flickerEffect{
+  0%,100%{opacity:1;}
+  25%{opacity:0.3;}
+  50%{opacity:1;}
+  75%{opacity:0.5;}
+}
+
+/* 스피커 라벨 */
+#speaker-label{
+  position:fixed;
+  bottom:210px;
+  left:50%;
+  transform:translateX(-50%);
+  margin-left:-280px;
+  background:rgba(0,0,100,0.85);
+  color:white;
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:0.9rem;
+  font-weight:bold;
+  text-transform:uppercase;
+  z-index:100;
+  pointer-events:none;
+  font-family:"Orbit", sans-serif;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+#speaker-label.show{
+  opacity:1;
+}
+
+/* 자막바 */
+#subtitle-box{
+  position:fixed;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  width:600px;
+  max-width:90%;
+  background:rgba(0,0,0,0.6);
+  padding:20px 30px;
+  z-index:100;
+  cursor:pointer;
+  transition:background 0.3s, opacity 0.3s;
+  min-height:80px;
+  display:flex;
+  align-items:center;
+  border-radius:10px;
+  backdrop-filter:blur(5px);
+  opacity:0;
+}
+#subtitle-box.show{
+  opacity:1;
+}
+#subtitle-box:hover{
+  background:rgba(0,0,0,0.75);
+}
+
+/* 자막 텍스트 */
+#subtitle-text{
+  color:white;
+  font-size:1.1rem;
+  line-height:1.6;
+  font-family:"Orbit", sans-serif;
+  width:100%;
+  max-width:90%;
+}
+
+/* 타이핑 커서 */
+#typing-cursor{
+  display:inline-block;
+  width:2px;
+  height:1.2em;
+  background:white;
+  margin-left:4px;
+  animation:blinkCursor 1s infinite;
+  vertical-align:middle;
+}
+
+@keyframes blinkCursor{
+  0%,50%{opacity:1;}
+  51%,100%{opacity:0;}
+}
+
 /* 장면 */
 #library-scene{
   position:fixed; inset:0;
   z-index:0;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 1s;
+}
+#library-scene.show{
+  opacity:1;
+  pointer-events:auto;
 }
 
 /* 객체들 */
@@ -83,6 +272,12 @@ body{
   position:absolute;
   cursor:pointer;
   transition:filter .3s;
+  opacity:0;
+  pointer-events:none;
+}
+.obj.show{
+  opacity:1;
+  pointer-events:auto;
 }
 .obj:hover{ filter:brightness(1.2); }
 
@@ -106,25 +301,195 @@ body{
 /* 안내 */
 #hint{
   position:fixed;
-  bottom:30px; left:50%;
-  transform:translateX(-50%);
-  color:#333;
-  font-size:0.95rem;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  color:white;
+  font-size:1.1rem;
   z-index:10;
-  background:rgba(255,255,255,0.75);
-  padding:10px 20px;
+  background:rgba(0,0,0,0.75);
+  padding:15px 30px;
   border-radius:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s;
+  text-align:center;
+}
+#hint.show{
+  opacity:1;
+  pointer-events:auto;
+}
+#hint.bottom-center{
+  top:auto;
+  bottom:100px;
+  transform:translateX(-50%);
 }
 
 /* 커서 */
 #cursor-dot{
   position:fixed;
   width:14px;height:14px;
-  border:2px solid rgba(0,0,0,0.7);
+  border:2px solid rgba(255,255,255,0.9);
   border-radius:50%;
   transform:translate(-50%,-50%);
   pointer-events:none;
   z-index:9999;
+}
+
+/* 커서 따라오는 집 이미지 */
+#home-container{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  pointer-events:none;
+  z-index:500;
+}
+
+.home{
+  position:absolute;
+  width:60px;
+  height:auto;
+  opacity:0.7;
+  animation:floatHome 1s ease-out forwards;
+  pointer-events:none;
+}
+
+@keyframes floatHome{
+  0%{
+    opacity:0.7;
+    transform:translate(0,0) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translate(0,-30px) scale(0.8);
+  }
+}
+
+/* 팝업 */
+#popup{
+  position:fixed;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0, 0, 255, 0.6);
+  color:white;
+  padding:18px 26px;
+  border-radius:10px;
+  font-size:1.1rem;
+  z-index:850;
+  display:none;
+  backdrop-filter:blur(4px);
+  border:1px solid rgba(255,255,255,0.3);
+  text-align:center;
+}
+
+#popup-image{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:40%;
+  max-width:500px;
+  border-radius:10px;
+  display:none;
+  z-index:850;
+}
+
+/* 핫스팟 공통 */
+.hotspot{
+  position:absolute;
+  cursor:pointer;
+  background:rgba(0, 4, 255, 0);
+  pointer-events:auto;
+  z-index:600;
+}
+
+/* 핫스팟 위치 */
+#hot-wall{top:5%;left:5%;width:30%;height:25%;} /* 벽지 (상단 왼쪽) */
+#hot-tree{top:35%;left:40%;width:20%;height:25%;} /* 나무 (중앙에서 살짝 위) */
+#hot-shelf{top:40%;right:15%;width:25%;height:30%;} /* 책장 (중앙부 오른쪽) */
+#hot-book{bottom:10%;left:5%;width:30%;height:25%;} /* 책 (하단 왼쪽) */
+
+/* 물음표 버튼 - 윈도우 프레임 우측 상단 */
+#help-button{
+  position:fixed;
+  top:8px;
+  right:8px;
+  width:48px;
+  height:48px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#0066cc;
+  color:white;
+  font-size:1.8rem;
+  font-weight:bold;
+  cursor:pointer;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 0.5s, visibility 0.5s;
+  z-index:10002;
+  border:1px solid #004499;
+}
+#help-button.show{
+  opacity:1;
+  visibility:visible;
+}
+#help-button:hover{
+  background:#0088ff;
+}
+
+/* 고향 비교 오버레이 */
+#hometown-comparison{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  z-index:900;
+  display:none;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:40px;
+  padding:40px;
+}
+#hometown-comparison.show{
+  display:flex;
+}
+#hometown-comparison .comparison-image{
+  max-width:45%;
+  max-height:80vh;
+  border:5px solid white;
+  border-radius:10px;
+}
+#hometown-comparison .comparison-label{
+  position:absolute;
+  top:20px;
+  color:white;
+  font-size:1.2rem;
+  font-weight:bold;
+  text-shadow:0 2px 10px rgba(0,0,0,0.8);
+}
+#hometown-comparison .close-btn{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:50px;
+  height:50px;
+  background:rgba(255,255,255,0.2);
+  border:2px solid white;
+  border-radius:50%;
+  color:white;
+  font-size:1.5rem;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background 0.3s;
+}
+#hometown-comparison .close-btn:hover{
+  background:rgba(255,255,255,0.4);
 }
 </style>
 </head>
@@ -135,75 +500,390 @@ body{
 <div id="window-noise"></div>
 <div id="scanlines"></div>
 
-<div id="chapter-label">CHAPTER 3 — 유사점 찾기</div>
-
-<div id="library-scene">
-  <!-- 예시 객체 위치 (원하는 대로 수정 가능) -->
-  <img class="obj" style="left:15%; top:25%; width:150px;" 
-       src="shelf.png" data-h hometown="h_shelf.png">
-
-  <img class="obj" style="right:20%; top:32%; width:180px;" 
-       src="window.png" data-h hometown="h_window.png">
-
-  <img class="obj" style="left:40%; bottom:15%; width:160px;" 
-       src="desk.png" data-h hometown="h_desk.png">
-
-  <img class="obj" style="right:35%; bottom:18%; width:170px;" 
-       src="lamp.png" data-h hometown="h_lamp.png">
+<div id="chapter-label">CHAPTER 3</div>
+<div id="music-player">
+  <div id="music-player-title">음악 플레이어</div>
+  <div id="music-player-content">
+    <button id="music-toggle">재생</button>
+    <div id="volume-control">
+      <span>🔊</span>
+      <input type="range" id="volume-slider" min="0" max="100" value="50">
+    </div>
+  </div>
 </div>
+<audio id="bgmusic" loop>
+  <source src="bgmusic.mp3" type="audio/mpeg">
+</audio>
+
+<div id="help-button">?</div>
+
+<div id="hometown-fullscreen"></div>
 
 <div id="blue-filter"></div>
+
+<div id="library-scene">
+  <!-- 클릭 가능한 핫스팟 -->
+  <div class="hotspot" id="hot-wall"></div>
+  <div class="hotspot" id="hot-tree"></div>
+  <div class="hotspot" id="hot-shelf"></div>
+  <div class="hotspot" id="hot-book"></div>
+</div>
 
 <!-- 고향 오버레이 -->
 <div id="hometown-overlay">
   <img id="hometown-image">
 </div>
 
-<div id="hint">비슷하다고 느껴지는 것을 클릭해보세요</div>
+<div id="speaker-label">YOU</div>
+<div id="subtitle-box">
+  <div id="subtitle-text"></div>
+</div>
+
+<div id="hint">고향과 비슷한 부분을 클릭해보자.</div>
 <div id="cursor-dot"></div>
+<div id="home-container"></div>
+
+<!-- 팝업 -->
+<img id="popup-image">
+<div id="popup"></div>
+
+<!-- 고향 비교 화면 -->
+<div id="hometown-comparison">
+  <div style="position:relative; text-align:center;">
+    <div class="comparison-label" style="left:50%; transform:translateX(-50%);">고향</div>
+    <img class="comparison-image" id="hometown-img" src="hometown.png" alt="고향">
+  </div>
+  <div style="position:relative; text-align:center;">
+    <div class="comparison-label" style="right:50%; transform:translateX(50%);">지금 이사온 곳</div>
+    <img class="comparison-image" id="current-img" src="newlibrary.png" alt="현재 도서관">
+  </div>
+  <div class="close-btn">×</div>
+</div>
 
 <script>
-/* 커서 */
-const cursor=document.getElementById("cursor-dot");
-document.addEventListener("mousemove", e => {
-  cursor.style.left=e.clientX+"px";
-  cursor.style.top=e.clientY+"px";
+const subtitleText = document.getElementById("subtitle-text");
+const subtitleBox = document.getElementById("subtitle-box");
+const speakerLabel = document.getElementById("speaker-label");
+const cursor = document.getElementById("cursor-dot");
+const homeContainer = document.getElementById("home-container");
+const bgmusic = document.getElementById("bgmusic");
+const musicToggle = document.getElementById("music-toggle");
+const volumeSlider = document.getElementById("volume-slider");
+
+// 음악 플레이어 제어
+musicToggle.addEventListener("click", () => {
+  if(bgmusic.paused){
+    bgmusic.play();
+    musicToggle.textContent = "정지";
+  }else{
+    bgmusic.pause();
+    musicToggle.textContent = "재생";
+  }
 });
 
-/* 객체 Hover */
-const objs = document.querySelectorAll(".obj");
-const overlay = document.getElementById("hometown-overlay");
-const overlayImg = document.getElementById("hometown-image");
+volumeSlider.addEventListener("input", (e) => {
+  bgmusic.volume = e.target.value / 100;
+});
+const hometownFullscreen = document.getElementById("hometown-fullscreen");
+const libraryScene = document.getElementById("library-scene");
+const hint = document.getElementById("hint");
 
-let clickCount = 0;
-const REQUIRED = objs.length;  // 네 개 전부 클릭해야 인증됨
+// 커서
+document.addEventListener("mousemove", e => {
+  cursor.style.left = e.clientX + "px";
+  cursor.style.top = e.clientY + "px";
+  
+  // 집 이미지 생성
+  const homeImgs = ['home2.png', 'home.png'];
+  const now = Date.now();
+  if(now - (lastCreateTime || 0) > 50){
+    const img = document.createElement('img');
+    img.src = homeImgs[Math.floor(Math.random() * homeImgs.length)];
+    img.className = 'home';
+    img.style.left = e.clientX + 'px';
+    img.style.top = e.clientY + 'px';
+    
+    if(Math.random() > 0.5){
+      img.style.width = '80px';
+      img.style.opacity = '0.6';
+      img.style.filter = 'blur(1.5px)';
+    }
+    
+    homeContainer.appendChild(img);
+    
+    setTimeout(() => {
+      img.style.opacity = 0;
+      setTimeout(() => img.remove(), 500);
+    }, 800);
+    
+    lastCreateTime = now;
+  }
+});
 
-objs.forEach(el => {
-  el.addEventListener("mouseenter", () => {
-    overlayImg.src = el.dataset.hometown;
-    overlay.classList.add("show");
-  });
-  el.addEventListener("mouseleave", () => {
-    overlay.classList.remove("show");
-  });
+let lastCreateTime = 0;
 
-  el.addEventListener("click", () => {
-    if(!el.classList.contains("done")){
-      el.classList.add("done");
-      clickCount++;
+// 메시지 순서
+const messages = [
+  "주민 분 추천으로 어쩌다가 도서관까지 와버렸네. 빨리 집에 가야할텐데 내가 뭐하는 거람...",
+  "그래도 이왕 온 거 구경이라도 해보자.",
+  "엇, 여기 도서관 고향에 있던 곳이랑 비슷한데..?"
+];
 
-      if(clickCount === REQUIRED){
-        overlayImg.src = "h_complete.png";
-        overlay.classList.add("show");
-        hint.innerHTML = "인증 완료 — 고향의 기억과 연결되었습니다.<br>클릭하여 다음 장으로 이동";
+let currentMessageIndex = 0;
+let isTyping = false;
+let typingTimeout = null;
+let sceneState = 0; // 0: 초기 메시지, 1: hometown.png 표시, 2: library scene 활성화
+
+// 타이핑 효과 함수
+function typeText(text, callback){
+  if(isTyping) return;
+  isTyping = true;
+  
+  subtitleText.innerHTML = "";
+  let charIndex = 0;
+  
+  function typeChar(){
+    if(charIndex < text.length){
+      subtitleText.innerHTML = text.substring(0, charIndex + 1) + '<span id="typing-cursor"></span>';
+      charIndex++;
+      typingTimeout = setTimeout(typeChar, 50);
+    } else {
+      subtitleText.innerHTML = text;
+      isTyping = false;
+      if(callback) callback();
+    }
+  }
+  
+  typeChar();
+}
+
+// 첫 메시지 표시
+setTimeout(() => {
+  speakerLabel.classList.add("show");
+  subtitleBox.classList.add("show");
+  typeText(messages[0]);
+}, 500);
+
+// 클릭하면 다음 메시지로 변경
+subtitleBox.addEventListener("click", () => {
+  if(isTyping){
+    // 타이핑 중이면 즉시 완성
+    clearTimeout(typingTimeout);
+    subtitleText.innerHTML = messages[currentMessageIndex];
+    isTyping = false;
+    return;
+  }
+  
+  currentMessageIndex++;
+  
+  if(currentMessageIndex === 1){
+    // 두 번째 메시지
+    typeText(messages[1], () => {
+      // 메시지 완성 후 잠시 대기
+    });
+  } else if(currentMessageIndex === 2){
+    // 두 번째 메시지 후 텍스트 박스 사라짐
+    setTimeout(() => {
+      subtitleBox.classList.remove("show");
+      speakerLabel.classList.remove("show");
+      
+      // hometown.png 깜빡거리면서 나타남
+      setTimeout(() => {
+        hometownFullscreen.classList.add("show");
+        hometownFullscreen.classList.add("flicker");
         
-        document.body.addEventListener("click", () => {
-          location.href = "doors.html";
-        }, {once:true});
-      }
+        setTimeout(() => {
+          hometownFullscreen.classList.remove("flicker");
+          
+          // 다시 텍스트 박스 나타남
+          setTimeout(() => {
+            subtitleBox.classList.add("show");
+            typeText(messages[2], () => {
+              // 메시지 완성 후 텍스트 박스 사라짐
+              setTimeout(() => {
+                subtitleBox.classList.remove("show");
+                speakerLabel.classList.remove("show");
+                
+                // newlibrary.png로 배경 변경
+                setTimeout(() => {
+                  body.style.background = "url('newlibrary.png') center/cover no-repeat";
+                  hometownFullscreen.classList.remove("show");
+                  libraryScene.classList.add("show");
+                  
+                  // 객체들 표시
+                  const objs = document.querySelectorAll(".obj");
+                  objs.forEach((obj, index) => {
+                    setTimeout(() => {
+                      obj.classList.add("show");
+                    }, index * 200);
+                  });
+                  
+                  // "고향과 유사한 것들을 클릭해보세요." 문구 표시 (정중앙)
+                  hint.textContent = "고향과 유사한 것들을 클릭해보세요.";
+                  hint.classList.add("show");
+                  
+                  // 3초 후 자동으로 사라짐
+                  setTimeout(() => {
+                    hint.classList.remove("show");
+                  }, 3000);
+                  
+                  // 객체 상호작용 활성화
+                  setupObjectInteraction();
+                }, 1000);
+              }, 2000);
+            });
+          }, 500);
+        }, 2000);
+      }, 500);
+    }, 1000);
+  }
+});
+
+const body = document.body;
+
+// 팝업 함수
+const popup = document.getElementById("popup");
+const popupImg = document.getElementById("popup-image");
+
+function showPopup(text, img){
+  popup.style.display = "block";
+  popup.innerHTML = text;
+  if(img){
+    popupImg.src = img;
+    popupImg.style.display = "block";
+  } else {
+    popupImg.style.display = "none";
+  }
+}
+
+function hidePopup(){
+  popup.style.display = "none";
+  popupImg.style.display = "none";
+}
+
+// 객체 상호작용 설정
+let viewedItems = {
+  wall: false,
+  tree: false,
+  bookcase: false,
+  book: false
+};
+
+function checkAllItemsViewed(){
+  if(viewedItems.wall && viewedItems.tree && viewedItems.bookcase && viewedItems.book){
+    // 모든 아이템을 본 경우
+    setTimeout(() => {
+      hidePopup();
+      setTimeout(() => {
+        subtitleBox.classList.add("show");
+        typeText("여기도 나쁘지 않네? 옛날 생각도 나고 말이야.", () => {
+          // 타이핑 완료 후 클릭하면 doors.html로 이동
+          subtitleBox.addEventListener("click", function finalClick(){
+            if(isTyping){
+              clearTimeout(typingTimeout);
+              subtitleText.innerHTML = "여기도 나쁘지 않네? 옛날 생각도 나고 말이야.";
+              isTyping = false;
+              return;
+            }
+            subtitleBox.style.opacity = "0";
+            setTimeout(() => {
+              location.href = "doors.html";
+            }, 500);
+          }, {once: true});
+        });
+      }, 1500);
+    }, 1000);
+  }
+}
+
+function setupObjectInteraction(){
+  // 핫스팟 클릭 이벤트
+  document.getElementById("hot-wall").onclick = (e) => {
+    e.stopPropagation();
+    if(!viewedItems.wall){
+      viewedItems.wall = true;
+      showPopup("와 여기 벽지랑 고향에 있던 벽지랑 비슷해. 좋아했던 벽지였는데...<br>또 볼 수 있어서 다행이다.", "wall.png");
+      checkAllItemsViewed();
+    } else {
+      showPopup("와 여기 벽지랑 고향에 있던 벽지랑 비슷해. 좋아했던 벽지였는데...<br>또 볼 수 있어서 다행이다.", "wall.png");
+    }
+  };
+  
+  document.getElementById("hot-tree").onclick = (e) => {
+    e.stopPropagation();
+    if(!viewedItems.tree){
+      viewedItems.tree = true;
+      showPopup("고향에 있던 나무 인테리어가 유일한 것이라고 생각했는데..<br>여기도 있는 거였구나. 자주 들러도 되겠다.", "tree.png");
+      checkAllItemsViewed();
+    } else {
+      showPopup("고향에 있던 나무 인테리어가 유일한 것이라고 생각했는데..<br>여기도 있는 거였구나. 자주 들러도 되겠다.", "tree.png");
+    }
+  };
+  
+  document.getElementById("hot-shelf").onclick = (e) => {
+    e.stopPropagation();
+    if(!viewedItems.bookcase){
+      viewedItems.bookcase = true;
+      showPopup("여기도 목재 책장이 있구나.<br>목재가구가 주는 편안한 분위기도 오랜만이네.", "bookcase.png");
+      checkAllItemsViewed();
+    } else {
+      showPopup("여기도 목재 책장이 있구나.<br>목재가구가 주는 편안한 분위기도 오랜만이네.", "bookcase.png");
+    }
+  };
+  
+  document.getElementById("hot-book").onclick = (e) => {
+    e.stopPropagation();
+    if(!viewedItems.book){
+      viewedItems.book = true;
+      showPopup("어릴 때 자주 읽던 책인데 여기에도 있네.", "book.png");
+      checkAllItemsViewed();
+    } else {
+      showPopup("어릴 때 자주 읽던 책인데 여기에도 있네.", "book.png");
+    }
+  };
+  
+  // 물음표 버튼 표시
+  const helpButton = document.getElementById("help-button");
+  helpButton.classList.add("show");
+  
+  // 물음표 버튼 클릭 → 안내 문구 표시
+  helpButton.onclick = (e) => {
+    e.stopPropagation();
+    hint.textContent = "벽지와 나무 인테리어, 그리고 나무 책장과 어릴 때 자주 읽던 책을 찾아보자.";
+    hint.classList.add("bottom-center");
+    hint.classList.add("show");
+    
+    // 5초 후 자동으로 사라짐
+    setTimeout(() => {
+      hint.classList.remove("show");
+      setTimeout(() => {
+        hint.classList.remove("bottom-center");
+      }, 300);
+    }, 5000);
+  };
+  
+  // 고향 비교 화면 닫기
+  const closeBtn = document.querySelector("#hometown-comparison .close-btn");
+  closeBtn.onclick = (e) => {
+    e.stopPropagation();
+    document.getElementById("hometown-comparison").classList.remove("show");
+  };
+  
+  // 고향 비교 화면 배경 클릭 → 닫기
+  document.getElementById("hometown-comparison").addEventListener("click", (e) => {
+    if(e.target.id === "hometown-comparison"){
+      e.target.classList.remove("show");
     }
   });
-});
+  
+  // 팝업 외부 클릭 → 닫기
+  document.addEventListener("click", (e) => {
+    if(e.target.classList.contains("hotspot")) return;
+    if(e.target === popupImg || e.target.closest("#popup")) return;
+    if(e.target === helpButton || e.target.closest("#help-button")) return;
+    hidePopup();
+  });
+}
 </script>
 
 </body>
